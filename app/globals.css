@@ -1,0 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bleu: #2B4EE5;
+  --bleu-hover: #1E3CC4;
+  --bleu-light: #EEF2FF;
+  --jaune: #F6BC3E;
+  --jaune-light: #FEF5E0;
+  --blanc: #FFFFFF;
+  --fond: #F8F9FB;
+  --texte: #1A1A2E;
+  --texte-muted: #888899;
+  --bordure: #E8EAF0;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-btn: 12px;
+  --font: 'Nunito', sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--fond);
+  color: var(--texte);
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+.container { max-width: 680px; margin: 0 auto; padding: 0 20px; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 14px 28px; border-radius: var(--radius-btn); font-family: var(--font);
+  font-size: 15px; font-weight: 800; cursor: pointer; border: none;
+  transition: all 0.2s ease; text-decoration: none;
+}
+.btn-primary { background: var(--bleu); color: #fff; width: 100%; font-size: 16px; padding: 16px; }
+.btn-primary:hover { background: var(--bleu-hover); }
+.btn-primary:disabled { background: #C8CEEA; cursor: not-allowed; }
+.btn-secondary { background: transparent; color: var(--bleu); border: 1.5px solid var(--bleu); }
+.btn-secondary:hover { background: var(--bleu-light); }
+
+.chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  padding: 10px 20px; border-radius: 100px; border: 2px solid var(--bordure);
+  background: var(--blanc); color: var(--texte-muted); font-family: var(--font);
+  font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s ease;
+}
+.chip:hover { border-color: var(--bleu); color: var(--bleu); }
+.chip.active { border-color: var(--bleu); background: var(--bleu-light); color: var(--bleu); }
+
+.level-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+.level-card {
+  background: var(--blanc); border: 2px solid var(--bordure); border-radius: var(--radius);
+  padding: 22px 12px; text-align: center; cursor: pointer; transition: all 0.15s ease;
+}
+.level-card:hover { border-color: var(--bleu); transform: translateY(-2px); }
+.level-card.active { border-color: var(--bleu); background: var(--bleu-light); }
+.level-card-icon { font-size: 38px; margin-bottom: 10px; }
+.level-card-label { font-size: 14px; font-weight: 800; color: var(--texte); }
+
+input[type="range"] {
+  width: 100%; -webkit-appearance: none; height: 5px; border-radius: 3px;
+  background: var(--bordure); outline: none; cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--bleu); cursor: pointer; box-shadow: 0 0 0 4px var(--bleu-light);
+  transition: transform 0.15s;
+}
+input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+.progress-bar { height: 5px; background: var(--bordure); border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--bleu); border-radius: 3px; transition: width 0.4s ease; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  width: 36px; height: 36px; border: 3px solid var(--bordure);
+  border-top-color: var(--bleu); border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.35s ease both; }
