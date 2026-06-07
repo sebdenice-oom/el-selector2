@@ -4,7 +4,7 @@ import { scoreRaquettesUpgrade } from '../../../lib/scoring-upgrade'
 export async function POST(request) {
   try {
     const body = await request.json()
-    const { raquetteActuelle, cibles, email } = body
+    const { raquetteActuelle, cibles, ciblesInitiales, email } = body
 
     if (!cibles || Object.keys(cibles).length === 0) {
       return Response.json({ error: 'Cibles manquantes' }, { status: 400 })
@@ -12,18 +12,24 @@ export async function POST(request) {
 
     const raquettes = await getRaquettes()
 
-    // Exclure la raquette actuelle des résultats
-    const raquettesFiltrees = raquetteActuelle
-      ? raquettes.filter(r => r.id !== raquetteActuelle.id)
-      : raquettes
+    // Prix de référence = prix non réduit de la raquette actuelle
+    const prixReference = raquetteActuelle?.compareAtPrice && raquetteActuelle.compareAtPrice > raquetteActuelle.price
+      ? raquetteActuelle.compareAtPrice
+      : raquetteActuelle?.price || null
 
-    const top = scoreRaquettesUpgrade(raquettesFiltrees, cibles, 12)
+    const top = scoreRaquettesUpgrade(
+      raquettes,
+      cibles,
+      ciblesInitiales || cibles,
+      prixReference,
+      raquetteActuelle?.id,
+      12
+    )
 
     if (top.length === 0) {
-      return Response.json({ resultats: [], message: "Aucune raquette ne correspond à tes critères d'évolution." })
+      return Response.json({ resultats: [], message: "Aucune raquette ne correspond." })
     }
 
-    // Klaviyo en arrière-plan si email fourni
     if (email) {
       try {
         const { identifyProfileUpgrade } = await import('../../../lib/klaviyo')
@@ -32,24 +38,15 @@ export async function POST(request) {
     }
 
     const resultats = top.map(r => ({
-      id: r.id,
-      title: r.title,
-      handle: r.handle,
-      url: r.url,
-      image: r.image,
-      imageAlt: r.imageAlt,
-      price: r.price,
-      compareAtPrice: r.compareAtPrice || null,
-      stock: r.stock,
-      precommande: r.precommande || false,
-      genre: r.genre,
-      poids: r.poids,
-      schema: r.schema,
-      scoreFinal: r.scoreFinal,
+      id: r.id, title: r.title, handle: r.handle, url: r.url,
+      image: r.image, imageAlt: r.imageAlt,
+      price: r.price, compareAtPrice: r.compareAtPrice || null,
+      stock: r.stock, precommande: r.precommande || false,
+      genre: r.genre, poids: r.poids, schema: r.schema,
+      scoreFinal: r.scoreFinal, scoreTech: r.scoreTech,
     }))
 
     return Response.json({ resultats })
-
   } catch (err) {
     console.error('Upgrade Score API error:', err)
     return Response.json({ error: 'Erreur serveur' }, { status: 500 })
