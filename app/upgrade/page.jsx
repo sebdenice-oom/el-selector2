@@ -7,100 +7,79 @@ const COULEUR_REF = '#D4537E'
 const COULEUR_PROP = '#2B4EE5'
 const PAGE_SIZE = 4
 
-// Calcul des points du radar hexagonal (6 axes)
-function hexPoints(valeurs, cx, cy, r) {
-  return DIMS.map((d, i) => {
-    const angle = (Math.PI / 3) * i - Math.PI / 2
-    const v = (valeurs[d] ?? 0) / 100
-    return [cx + r * v * Math.cos(angle), cy + r * v * Math.sin(angle)]
-  }).map(([x, y]) => `${x},${y}`).join(' ')
+function radarPoint(valeur, angle, cx, cy, r) {
+  const offset = ((valeur - 50) / 50) * r
+  return [cx + offset * Math.cos(angle), cy + offset * Math.sin(angle)]
 }
 
-function hexGridPoints(cx, cy, r) {
-  return DIMS.map((_, i) => {
-    const angle = (Math.PI / 3) * i - Math.PI / 2
-    return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)]
-  })
-}
-
-function RadarComparaison({ schemaRef, schemaPropose, cibles }) {
-  const cx = 90, cy = 90, r = 72
-  const gridPts = hexGridPoints(cx, cy, r)
-  const ptsRef = hexPoints(schemaRef, cx, cy, r)
-  const ptsProp = hexPoints(schemaPropose, cx, cy, r)
+function RadarZoom({ schemaRef, schemaPropose }) {
+  const cx = 95, cy = 100, r = 78
+  const angles = DIMS.map((_, i) => (Math.PI / 3) * i - Math.PI / 2)
+  const ptsRef   = DIMS.map((d, i) => radarPoint(schemaRef[d]   ?? 50, angles[i], cx, cy, r))
+  const ptsProp  = DIMS.map((d, i) => radarPoint(schemaPropose[d] ?? 50, angles[i], cx, cy, r))
+  const toStr = pts => pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' ')
+  const grid100  = angles.map(a => [cx + r * Math.cos(a), cy + r * Math.sin(a)])
+  const grid75   = angles.map(a => [cx + (r / 2) * Math.cos(a), cy + (r / 2) * Math.sin(a)])
+  const labels   = { Puissance: 'Puissance', Confort: 'Confort', Spin: 'Spin', Contrôle: 'Contrôle', Tolérance: 'Tolérance', Maniabilité: 'Maniab.' }
 
   return (
-    <svg width={180} height={180} viewBox="0 0 180 180" style={{ flexShrink: 0 }}>
-      {[0.33, 0.66, 1].map(f => (
-        <polygon key={f}
-          points={gridPts.map(([x, y]) => `${cx + (x - cx) * f},${cy + (y - cy) * f}`).join(' ')}
-          fill="none" stroke="var(--color-border-tertiary)" strokeWidth="0.8" />
-      ))}
-      {gridPts.map(([x, y], i) => (
-        <line key={i} x1={cx} y1={cy} x2={x} y2={y} stroke="var(--color-border-tertiary)" strokeWidth="0.5" />
-      ))}
-      <polygon points={ptsRef} fill={COULEUR_REF + '18'} stroke={COULEUR_REF} strokeWidth="2" strokeDasharray="5,2.5" strokeLinejoin="round" />
-      <polygon points={ptsProp} fill={COULEUR_PROP + '18'} stroke={COULEUR_PROP} strokeWidth="2" strokeLinejoin="round" />
-      {gridPts.map(([x, y], i) => {
-        const angle = (Math.PI / 3) * i - Math.PI / 2
-        const lx = cx + (r + 14) * Math.cos(angle)
-        const ly = cy + (r + 14) * Math.sin(angle)
-        const anchor = lx < cx - 5 ? 'end' : lx > cx + 5 ? 'start' : 'middle'
-        return (
-          <text key={i} x={lx} y={ly + 3} textAnchor={anchor} fontSize="8" fill="var(--color-text-secondary)" fontFamily="Nunito, sans-serif">
-            {DIMS[i]}
-          </text>
-        )
+    <svg width={190} height={200} viewBox="0 0 190 200" style={{ flexShrink: 0 }}>
+      {angles.map((a, i) => <line key={i} x1={cx} y1={cy} x2={grid100[i][0].toFixed(1)} y2={grid100[i][1].toFixed(1)} stroke="var(--color-border-tertiary)" strokeWidth="0.5" />)}
+      <polygon points={toStr(grid100)} fill="none" stroke="var(--color-border-tertiary)" strokeWidth="0.8" />
+      <polygon points={toStr(grid75)}  fill="none" stroke="var(--color-border-tertiary)" strokeWidth="0.8" />
+      <circle cx={cx} cy={cy} r={2} fill="var(--color-border-tertiary)" />
+      <text x={cx} y={cy - 4}       textAnchor="middle" fontSize={7} fill="var(--color-text-secondary)" fontFamily="Nunito,sans-serif">50</text>
+      <text x={cx} y={cy - r/2 - 3} textAnchor="middle" fontSize={7} fill="var(--color-text-secondary)" fontFamily="Nunito,sans-serif">75</text>
+      <text x={cx} y={cy - r - 3}   textAnchor="middle" fontSize={7} fill="var(--color-text-secondary)" fontFamily="Nunito,sans-serif">100</text>
+      <polygon points={toStr(ptsRef)}  fill={COULEUR_REF + '12'} stroke={COULEUR_REF} strokeWidth={2} strokeDasharray="5,2.5" strokeLinejoin="round" />
+      <polygon points={toStr(ptsProp)} fill={COULEUR_PROP + '18'} stroke={COULEUR_PROP} strokeWidth={2} strokeLinejoin="round" />
+      {DIMS.map((d, i) => {
+        const a   = angles[i]
+        const lx  = cx + (r + 16) * Math.cos(a)
+        const ly  = cy + (r + 16) * Math.sin(a)
+        const anc = lx < cx - 5 ? 'end' : lx > cx + 5 ? 'start' : 'middle'
+        return <text key={i} x={lx.toFixed(1)} y={(ly + 3).toFixed(1)} textAnchor={anc} fontSize={8.5} fontWeight="600" fill="var(--color-text-secondary)" fontFamily="Nunito,sans-serif">{labels[d]}</text>
       })}
     </svg>
   )
 }
 
-function ComparaisonCard({ raquette, raquetteActuelle, cibles }) {
-  const schemaRef = raquetteActuelle?.schema || {}
+function ComparaisonCard({ raquette, raquetteActuelle }) {
+  const schemaRef     = raquetteActuelle?.schema || {}
   const schemaPropose = raquette.schema || {}
-
   return (
-    <div style={{ padding: '14px 0 4px' }}>
-      {/* Score */}
-      <div style={{ textAlign: 'center', marginBottom: 12 }}>
+    <div style={{ padding: '12px 0 4px' }}>
+      <div style={{ textAlign: 'center', marginBottom: 10 }}>
         <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', fontFamily: 'Nunito, sans-serif' }}>Score de correspondance</div>
-        <div style={{ fontSize: 26, fontWeight: 900, color: COULEUR_PROP, fontFamily: 'Nunito, sans-serif', lineHeight: 1.2 }}>{raquette.scoreFinal}%</div>
+        <div style={{ fontSize: 24, fontWeight: 900, color: COULEUR_PROP, fontFamily: 'Nunito, sans-serif', lineHeight: 1.2 }}>{raquette.scoreFinal}%</div>
       </div>
-
-      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-        <RadarComparaison schemaRef={schemaRef} schemaPropose={schemaPropose} cibles={cibles} />
-
-        <div style={{ flex: 1, minWidth: 160 }}>
-          {/* Légende */}
-          <div style={{ display: 'flex', gap: 12, marginBottom: 10 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--color-text-secondary)', fontFamily: 'Nunito, sans-serif' }}>
-              <div style={{ width: 10, height: 10, borderRadius: '50%', background: COULEUR_REF, opacity: 0.8 }} />
-              Ta raquette
+      <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        <RadarZoom schemaRef={schemaRef} schemaPropose={schemaPropose} />
+        <div style={{ flex: 1, minWidth: 150 }}>
+          <div style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--color-text-secondary)', fontFamily: 'Nunito, sans-serif' }}>
+              <div style={{ width: 9, height: 9, borderRadius: '50%', background: COULEUR_REF, opacity: 0.8 }} /> Ta raquette
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--color-text-secondary)', fontFamily: 'Nunito, sans-serif' }}>
-              <div style={{ width: 10, height: 10, borderRadius: '50%', background: COULEUR_PROP }} />
-              Proposée
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--color-text-secondary)', fontFamily: 'Nunito, sans-serif' }}>
+              <div style={{ width: 9, height: 9, borderRadius: '50%', background: COULEUR_PROP }} /> Proposée
             </div>
           </div>
-
-          {/* Tableau comparatif */}
           {DIMS.filter(d => schemaPropose[d] !== undefined).map(d => {
-            const valRef = schemaRef[d] ?? '–'
+            const valRef  = schemaRef[d] ?? '–'
             const valProp = schemaPropose[d]
-            const delta = typeof valRef === 'number' ? valProp - valRef : null
-            const positif = delta !== null && delta >= 0
+            const delta   = typeof valRef === 'number' ? valProp - valRef : null
+            const pos     = delta !== null && delta >= 0
             return (
-              <div key={d} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '0.5px solid var(--color-border-tertiary)' }}>
-                <span style={{ fontSize: 14, width: 20, textAlign: 'center', flexShrink: 0 }}>{DIM_ICONS[d]}</span>
-                <span style={{ fontSize: 12, color: 'var(--color-text-secondary)', width: 76, flexShrink: 0, fontFamily: 'Nunito, sans-serif' }}>{d}</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, justifyContent: 'flex-end' }}>
-                  <span style={{ fontSize: 15, fontWeight: 800, color: COULEUR_REF, width: 28, textAlign: 'right', fontFamily: 'Nunito, sans-serif' }}>{valRef}</span>
-                  <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>→</span>
-                  <span style={{ fontSize: 15, fontWeight: 800, color: COULEUR_PROP, width: 28, textAlign: 'right', fontFamily: 'Nunito, sans-serif' }}>{valProp}</span>
+              <div key={d} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 0', borderBottom: '0.5px solid var(--color-border-tertiary)' }}>
+                <span style={{ fontSize: 13, width: 18, textAlign: 'center', flexShrink: 0 }}>{DIM_ICONS[d]}</span>
+                <span style={{ fontSize: 11, color: 'var(--color-text-secondary)', flex: 1, fontFamily: 'Nunito, sans-serif' }}>{d}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                  <span style={{ fontSize: 14, fontWeight: 800, color: COULEUR_REF, width: 24, textAlign: 'right', fontFamily: 'Nunito, sans-serif' }}>{valRef}</span>
+                  <span style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>→</span>
+                  <span style={{ fontSize: 14, fontWeight: 800, color: COULEUR_PROP, width: 24, textAlign: 'right', fontFamily: 'Nunito, sans-serif' }}>{valProp}</span>
                   {delta !== null && (
-                    <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 10, minWidth: 36, textAlign: 'center', fontFamily: 'Nunito, sans-serif', background: positif ? '#EAF3DE' : '#FAECE7', color: positif ? '#3B6D11' : '#993C1D' }}>
-                      {positif ? '+' : ''}{delta}
+                    <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 5px', borderRadius: 8, minWidth: 30, textAlign: 'center', fontFamily: 'Nunito, sans-serif', background: pos ? '#EAF3DE' : '#FAECE7', color: pos ? '#3B6D11' : '#993C1D' }}>
+                      {pos ? '+' : ''}{delta}
                     </span>
                   )}
                 </div>
@@ -113,31 +92,22 @@ function ComparaisonCard({ raquette, raquetteActuelle, cibles }) {
   )
 }
 
-function RaquetteCard({ raquette, rank, raquetteActuelle, cibles }) {
+function RaquetteCard({ raquette, rank, raquetteActuelle }) {
   const [expanded, setExpanded] = useState(false)
-  const isTop = rank === 1
+  const isTop    = rank === 1
   const hasPromo = raquette.compareAtPrice && raquette.compareAtPrice > raquette.price
-  const remise = hasPromo ? Math.round((1 - raquette.price / raquette.compareAtPrice) * 100) : 0
-
+  const remise   = hasPromo ? Math.round((1 - raquette.price / raquette.compareAtPrice) * 100) : 0
   return (
     <div style={{ background: '#fff', border: `1.5px solid ${isTop ? COULEUR_PROP : '#E8EAF0'}`, borderRadius: 14, overflow: 'hidden', marginBottom: 10, boxShadow: isTop ? '0 4px 20px rgba(43,78,229,0.10)' : 'none' }}>
-      {isTop && (
-        <div style={{ background: COULEUR_PROP, color: '#fff', padding: '5px 14px', fontSize: 11, fontWeight: 800, letterSpacing: '0.05em', fontFamily: 'Nunito, sans-serif' }}>
-          🚀 Meilleure évolution
-        </div>
-      )}
-
-      {/* Tuile cliquable */}
+      {isTop && <div style={{ background: COULEUR_PROP, color: '#fff', padding: '5px 14px', fontSize: 11, fontWeight: 800, letterSpacing: '0.05em', fontFamily: 'Nunito, sans-serif' }}>🚀 Meilleure évolution</div>}
       <a href={raquette.url} target="_blank" rel="noopener noreferrer"
-        style={{ display: 'flex', gap: 12, padding: '12px 14px', textDecoration: 'none', cursor: 'pointer', transition: 'background .1s' }}
+        style={{ display: 'flex', gap: 12, padding: '12px 14px', textDecoration: 'none', transition: 'background .1s' }}
         onMouseEnter={e => e.currentTarget.style.background = '#F8F9FB'}
         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-
         <div style={{ width: 64, height: 64, flexShrink: 0, background: '#F0F3FF', borderRadius: 10, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
           {raquette.image ? <img src={raquette.image} alt={raquette.title} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: 28 }}>🏏</span>}
           {!isTop && <div style={{ position: 'absolute', top: 3, left: 3, background: '#F8F9FB', border: '1px solid #E8EAF0', borderRadius: 6, padding: '1px 5px', fontSize: 9, fontWeight: 800, color: '#888', fontFamily: 'Nunito, sans-serif' }}>#{rank}</div>}
         </div>
-
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: 13, fontWeight: 800, color: '#1A1A2E', lineHeight: 1.3, marginBottom: 4 }}>{raquette.title}</div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 4, flexWrap: 'wrap' }}>
@@ -156,16 +126,13 @@ function RaquetteCard({ raquette, rank, raquetteActuelle, cibles }) {
           </div>
         </div>
       </a>
-
-      {/* Toggle comparaison */}
       <button onClick={() => setExpanded(e => !e)} style={{ width: '100%', background: 'none', border: 'none', borderTop: '0.5px solid #EEF0F6', padding: '8px 14px', fontFamily: 'Nunito, sans-serif', fontSize: 11, fontWeight: 700, color: '#888', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
         {expanded ? 'Masquer la comparaison' : 'Voir la comparaison'}
         <span style={{ display: 'inline-block', transition: 'transform .2s', transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)', fontSize: 9 }}>▼</span>
       </button>
-
       {expanded && (
         <div style={{ padding: '0 14px 14px', borderTop: '0.5px solid #EEF0F6', background: '#FAFBFF' }}>
-          <ComparaisonCard raquette={raquette} raquetteActuelle={raquetteActuelle} cibles={cibles} />
+          <ComparaisonCard raquette={raquette} raquetteActuelle={raquetteActuelle} />
         </div>
       )}
     </div>
@@ -174,26 +141,20 @@ function RaquetteCard({ raquette, rank, raquetteActuelle, cibles }) {
 
 function RaquetteReference({ raquette }) {
   if (!raquette) return null
-  const hasPromo = raquette.compareAtPrice && raquette.compareAtPrice > raquette.price
-  const prixRef = hasPromo ? raquette.compareAtPrice : raquette.price
-
+  const prixRef = raquette.compareAtPrice && raquette.compareAtPrice > raquette.price ? raquette.compareAtPrice : raquette.price
   return (
-    <div style={{ background: '#fff', border: `1.5px solid #E8EAF0`, borderRadius: 14, overflow: 'hidden', marginBottom: 12, position: 'sticky', top: 57, zIndex: 90 }}>
-      <div style={{ background: '#F8F9FB', padding: '6px 14px', fontSize: 10, fontWeight: 800, letterSpacing: '0.05em', color: '#888', fontFamily: 'Nunito, sans-serif' }}>
-        TA RAQUETTE ACTUELLE
-      </div>
-      <div style={{ display: 'flex', gap: 12, padding: '12px 14px' }}>
-        <div style={{ width: 64, height: 64, flexShrink: 0, background: '#F0F3FF', borderRadius: 10, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {raquette.image ? <img src={raquette.image} alt={raquette.title} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: 28 }}>🏏</span>}
+    <div style={{ background: '#fff', border: '1.5px solid #E8EAF0', borderRadius: 14, overflow: 'hidden', marginBottom: 12, position: 'sticky', top: 57, zIndex: 90 }}>
+      <div style={{ background: '#F8F9FB', padding: '5px 14px', fontSize: 10, fontWeight: 800, letterSpacing: '0.05em', color: '#888', fontFamily: 'Nunito, sans-serif' }}>TA RAQUETTE ACTUELLE</div>
+      <div style={{ display: 'flex', gap: 12, padding: '10px 14px' }}>
+        <div style={{ width: 56, height: 56, flexShrink: 0, background: '#F0F3FF', borderRadius: 10, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {raquette.image ? <img src={raquette.image} alt={raquette.title} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: 24 }}>🏏</span>}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: 13, fontWeight: 800, color: '#1A1A2E', marginBottom: 4 }}>{raquette.title}</div>
-          <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: 16, fontWeight: 900, color: COULEUR_REF, marginBottom: 6 }}>{parseFloat(prixRef).toFixed(2)} €</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px' }}>
+          <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: 12, fontWeight: 800, color: '#1A1A2E', marginBottom: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{raquette.title}</div>
+          <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: 14, fontWeight: 900, color: COULEUR_REF, marginBottom: 4 }}>{parseFloat(prixRef).toFixed(2)} €</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 10px' }}>
             {Object.entries(raquette.schema || {}).map(([k, v]) => (
-              <span key={k} style={{ fontFamily: 'Nunito, sans-serif', fontSize: 10, fontWeight: 700, color: COULEUR_REF }}>
-                {DIM_ICONS[k]} {k} <strong>{v}</strong>
-              </span>
+              <span key={k} style={{ fontFamily: 'Nunito, sans-serif', fontSize: 10, fontWeight: 700, color: COULEUR_REF }}>{DIM_ICONS[k]} <strong>{v}</strong></span>
             ))}
           </div>
         </div>
@@ -202,7 +163,7 @@ function RaquetteReference({ raquette }) {
   )
 }
 
-function PanneauSliders({ cibles, ciblesInitiales, raquetteActuelle, onChangeCible, ouvert, onToggle, loading }) {
+function PanneauSliders({ cibles, raquetteActuelle, onChangeCible, ouvert, onToggle, loading }) {
   return (
     <>
       <button onClick={onToggle} style={{ position: 'fixed', right: 0, top: '50%', transform: 'translateY(-50%)', background: COULEUR_PROP, color: '#fff', border: 'none', borderRadius: '12px 0 0 12px', padding: '14px 10px', cursor: 'pointer', zIndex: 200, fontFamily: 'Nunito, sans-serif', fontSize: 11, fontWeight: 800, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, boxShadow: '-2px 0 12px rgba(43,78,229,0.2)' }}>
@@ -214,13 +175,11 @@ function PanneauSliders({ cibles, ciblesInitiales, raquetteActuelle, onChangeCib
           <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 15, fontWeight: 900, color: '#1A1A2E' }}>Ajuster mes critères</span>
           <button onClick={onToggle} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: '#888' }}>✕</button>
         </div>
-        <p style={{ fontFamily: 'Nunito, sans-serif', fontSize: 12, fontWeight: 600, color: '#888', marginBottom: 20 }}>
-          {loading ? '⏳ Recalcul...' : 'Résultats mis à jour automatiquement'}
-        </p>
+        <p style={{ fontFamily: 'Nunito, sans-serif', fontSize: 12, fontWeight: 600, color: '#888', marginBottom: 20 }}>{loading ? '⏳ Recalcul...' : 'Résultats mis à jour automatiquement'}</p>
         {DIMS.map(d => {
           const valeurActuelle = raquetteActuelle?.schema?.[d] ?? 50
-          const valeurCible = cibles[d] ?? valeurActuelle
-          const delta = valeurCible - valeurActuelle
+          const valeurCible    = cibles[d] ?? valeurActuelle
+          const delta          = valeurCible - valeurActuelle
           return (
             <div key={d} style={{ marginBottom: 18 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
@@ -235,9 +194,9 @@ function PanneauSliders({ cibles, ciblesInitiales, raquetteActuelle, onChangeCib
                 <div style={{ position: 'absolute', left: `calc(${valeurActuelle}% - 1px)`, top: 0, bottom: 0, width: 2, background: '#C8D3F9', borderRadius: 1, pointerEvents: 'none' }} />
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
-                <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 9, color: '#ccc' }}>Moins</span>
+                <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 9, color: '#ccc' }}>0</span>
                 <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 9, color: '#aaa' }}>Actuel : {valeurActuelle}</span>
-                <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 9, color: '#ccc' }}>Plus</span>
+                <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 9, color: '#ccc' }}>100</span>
               </div>
             </div>
           )
@@ -286,7 +245,7 @@ export default function UpgradePage() {
       const res = await fetch('/api/upgrade-score', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ raquetteActuelle: raquette, cibles: nouvellesCibles, ciblesInitiales: initiales || nouvellesCibles, email: null }),
+        body: JSON.stringify({ raquetteActuelle: raquette, cibles: nouvellesCibles, ciblesInitiales: initiales || nouvellesCibles }),
       })
       const data = await res.json()
       if (res.ok && data.resultats) { setResultats(data.resultats); setVisibles(PAGE_SIZE) }
@@ -343,7 +302,7 @@ export default function UpgradePage() {
           </div>
         </div>
         <div className="container fade-up" style={{ flex: 1, paddingTop: 40, paddingBottom: 32 }}>
-          <h1 style={{ fontFamily: 'var(--font)', fontSize: 'clamp(22px, 5vw, 30px)', fontWeight: 900, color: 'var(--texte)', textAlign: 'center', marginBottom: 8 }}>Quelle est ta raquette actuelle ?</h1>
+          <h1 style={{ fontFamily: 'var(--font)', fontSize: 'clamp(22px,5vw,30px)', fontWeight: 900, color: 'var(--texte)', textAlign: 'center', marginBottom: 8 }}>Quelle est ta raquette actuelle ?</h1>
           <p style={{ color: 'var(--texte-muted)', fontSize: 14, fontWeight: 600, textAlign: 'center', marginBottom: 32 }}>Tape le nom pour la trouver dans notre catalogue</p>
           <div style={{ position: 'relative' }}>
             <input type="text" placeholder="Ex: Bullpadel Hack 04..." value={query} onChange={e => setQuery(e.target.value)} autoFocus
@@ -388,15 +347,9 @@ export default function UpgradePage() {
           <button onClick={() => setEtape('recherche')} style={{ fontFamily: 'Nunito, sans-serif', fontSize: 12, fontWeight: 700, color: '#888', background: 'none', border: 'none', cursor: 'pointer' }}>← Changer de raquette</button>
         </div>
       </div>
-
-      <div className="container" style={{ paddingTop: 20, paddingRight: 52 }}>
-        {/* Raquette initiale fixe */}
+      <div className="container" style={{ paddingTop: 16, paddingRight: 52 }}>
         <RaquetteReference raquette={raquetteChoisie} />
-
-        <p style={{ fontFamily: 'Nunito, sans-serif', fontSize: 12, color: '#888', fontWeight: 600, marginBottom: 16 }}>
-          🎚️ Panneau latéral pour ajuster tes critères — les résultats se mettent à jour automatiquement
-        </p>
-
+        <p style={{ fontFamily: 'Nunito, sans-serif', fontSize: 11, color: '#888', fontWeight: 600, marginBottom: 14 }}>🎚️ Panneau latéral pour ajuster tes critères</p>
         {loading ? (
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
             <div className="spinner" style={{ margin: '0 auto 12px' }} />
@@ -409,22 +362,18 @@ export default function UpgradePage() {
           </div>
         ) : (
           <>
-            <p style={{ color: '#888899', fontSize: 12, fontWeight: 700, marginBottom: 14, fontFamily: 'Nunito, sans-serif' }}>{resultats.length} raquette{resultats.length > 1 ? 's' : ''} trouvée{resultats.length > 1 ? 's' : ''}</p>
-
+            <p style={{ color: '#888899', fontSize: 12, fontWeight: 700, marginBottom: 12, fontFamily: 'Nunito, sans-serif' }}>{resultats.length} raquette{resultats.length > 1 ? 's' : ''} trouvée{resultats.length > 1 ? 's' : ''}</p>
             {resultats.slice(0, visibles).map((r, i) => (
-              <RaquetteCard key={r.id} raquette={r} rank={i + 1} raquetteActuelle={raquetteChoisie} cibles={cibles} />
+              <RaquetteCard key={r.id} raquette={r} rank={i + 1} raquetteActuelle={raquetteChoisie} />
             ))}
-
             {visibles < resultats.length && (
               <button onClick={() => setVisibles(v => Math.min(v + PAGE_SIZE, resultats.length))}
                 style={{ width: '100%', padding: '12px', background: '#fff', border: `1.5px solid ${COULEUR_PROP}`, borderRadius: 12, fontFamily: 'Nunito, sans-serif', fontSize: 13, fontWeight: 800, color: COULEUR_PROP, cursor: 'pointer', marginBottom: 16 }}>
                 Voir {Math.min(PAGE_SIZE, resultats.length - visibles)} raquette{Math.min(PAGE_SIZE, resultats.length - visibles) > 1 ? 's' : ''} de plus ↓
               </button>
             )}
-
-            {/* Email après résultats */}
             {!emailEnvoye ? (
-              <div style={{ background: '#fff', border: '1.5px solid #E8EAF0', borderRadius: 14, padding: '18px 16px', marginTop: 6, textAlign: 'center' }}>
+              <div style={{ background: '#fff', border: '1.5px solid #E8EAF0', borderRadius: 14, padding: '16px', marginTop: 6, textAlign: 'center' }}>
                 <p style={{ fontFamily: 'Nunito, sans-serif', fontSize: 14, fontWeight: 900, color: '#1A1A2E', marginBottom: 4 }}>📧 Reçois ton TOP 3 par email</p>
                 <p style={{ fontFamily: 'Nunito, sans-serif', fontSize: 12, fontWeight: 600, color: '#888', marginBottom: 12 }}>Garde une trace de tes recommandations</p>
                 <div style={{ display: 'flex', gap: 8 }}>
@@ -442,8 +391,7 @@ export default function UpgradePage() {
           </>
         )}
       </div>
-
-      <PanneauSliders cibles={cibles} ciblesInitiales={ciblesInitiales} raquetteActuelle={raquetteChoisie} onChangeCible={handleChangeCible} ouvert={panneauOuvert} onToggle={() => setPanneauOuvert(o => !o)} loading={loading} />
+      <PanneauSliders cibles={cibles} raquetteActuelle={raquetteChoisie} onChangeCible={handleChangeCible} ouvert={panneauOuvert} onToggle={() => setPanneauOuvert(o => !o)} loading={loading} />
     </main>
   )
 }
