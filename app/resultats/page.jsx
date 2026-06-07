@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 const DIMS = ['Puissance', 'Confort', 'Spin', 'Contrôle', 'Tolérance', 'Maniabilité']
 const DIM_ICONS = { Puissance: '⚡', Confort: '🛡️', Spin: '🌀', Contrôle: '🎯', Tolérance: '💪', Maniabilité: '🏃' }
 const COULEUR_PROP = '#2B4EE5'
-const PAGE_SIZE = 6 // 3 lignes de 2
+const PAGE_SIZE = 6
 
 const LABEL_SENSATION = {
   puissance: '⚡ Puissance', maniabilite: '🏃 Maniabilité',
@@ -14,7 +14,6 @@ const LABEL_NIVEAU = {
   debutant: 'Débutant', intermediaire: 'Intermédiaire', avance: 'Avancé', competition: 'Compétition',
 }
 
-// Radar zoomé 50-100 — solo (pas de comparaison)
 function radarPoint(valeur, angle, cx, cy, r) {
   const offset = ((valeur - 50) / 50) * r
   return [cx + offset * Math.cos(angle), cy + offset * Math.sin(angle)]
@@ -35,9 +34,9 @@ function RadarSolo({ schema }) {
       <polygon points={toStr(grid100)} fill="none" stroke="#E8EAF0" strokeWidth="0.8" />
       <polygon points={toStr(grid75)}  fill="none" stroke="#E8EAF0" strokeWidth="0.8" />
       <circle cx={cx} cy={cy} r={2} fill="#E8EAF0" />
-      <text x={cx} y={cy - 4}        textAnchor="middle" fontSize={8} fill="#aaa" fontFamily="Nunito,sans-serif">50</text>
-      <text x={cx} y={cy - r/2 - 3}  textAnchor="middle" fontSize={8} fill="#aaa" fontFamily="Nunito,sans-serif">75</text>
-      <text x={cx} y={cy - r - 3}    textAnchor="middle" fontSize={8} fill="#aaa" fontFamily="Nunito,sans-serif">100</text>
+      <text x={cx} y={cy - 4}       textAnchor="middle" fontSize={8} fill="#aaa" fontFamily="Nunito,sans-serif">50</text>
+      <text x={cx} y={cy - r/2 - 3} textAnchor="middle" fontSize={8} fill="#aaa" fontFamily="Nunito,sans-serif">75</text>
+      <text x={cx} y={cy - r - 3}   textAnchor="middle" fontSize={8} fill="#aaa" fontFamily="Nunito,sans-serif">100</text>
       <polygon points={toStr(pts)} fill={COULEUR_PROP + '20'} stroke={COULEUR_PROP} strokeWidth={2.5} strokeLinejoin="round" />
       {DIMS.map((d, i) => {
         const a   = angles[i]
@@ -64,11 +63,9 @@ function ModalProfil({ raquette, onClose }) {
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
       <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 520, maxHeight: '88vh', overflowY: 'auto', padding: '20px 16px 40px', position: 'relative' }}>
-        {/* Handle */}
         <div style={{ width: 36, height: 4, background: '#E8EAF0', borderRadius: 2, margin: '0 auto 16px' }} />
         <button onClick={onClose} style={{ position: 'absolute', top: 16, right: 16, background: '#F8F9FB', border: 'none', borderRadius: '50%', width: 30, height: 30, fontSize: 15, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>✕</button>
 
-        {/* Infos raquette */}
         <div style={{ display: 'flex', gap: 12, marginBottom: 16, alignItems: 'flex-start' }}>
           <div style={{ width: 72, height: 72, background: '#F0F3FF', borderRadius: 12, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             {raquette.image ? <img src={raquette.image} alt={raquette.title} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: 32 }}>🏏</span>}
@@ -85,16 +82,13 @@ function ModalProfil({ raquette, onClose }) {
           </div>
         </div>
 
-        {/* Score */}
         <div style={{ textAlign: 'center', marginBottom: 14 }}>
           <div style={{ fontSize: 11, color: '#888', fontFamily: 'Nunito, sans-serif' }}>Score de correspondance</div>
           <div style={{ fontSize: 28, fontWeight: 900, color: COULEUR_PROP, fontFamily: 'Nunito, sans-serif', lineHeight: 1.2 }}>{raquette.scoreFinal}%</div>
         </div>
 
-        {/* Radar */}
         <RadarSolo schema={schema} />
 
-        {/* Tableau */}
         <div style={{ marginTop: 14 }}>
           {DIMS.filter(d => schema[d] !== undefined).map(d => (
             <div key={d} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', borderBottom: '0.5px solid #EEF0F6' }}>
@@ -105,7 +99,6 @@ function ModalProfil({ raquette, onClose }) {
           ))}
         </div>
 
-        {/* CTA */}
         <a href={raquette.url} target="_blank" rel="noopener noreferrer"
           style={{ display: 'block', width: '100%', padding: '14px', background: COULEUR_PROP, color: '#fff', border: 'none', borderRadius: 12, fontFamily: 'Nunito, sans-serif', fontSize: 14, fontWeight: 800, cursor: 'pointer', marginTop: 20, textAlign: 'center', textDecoration: 'none' }}>
           Voir la raquette sur le site →
@@ -123,9 +116,8 @@ function RaquetteCard({ raquette, rank, onVoirProfil }) {
   return (
     <div style={{ border: `1.5px solid ${isTop ? COULEUR_PROP : '#E8EAF0'}`, borderRadius: 12, overflow: 'hidden', background: '#fff', boxShadow: isTop ? '0 4px 16px rgba(43,78,229,0.12)' : 'none', display: 'flex', flexDirection: 'column' }}>
       {isTop && <div style={{ background: COULEUR_PROP, color: '#fff', fontSize: 9, fontWeight: 800, padding: '3px 10px', fontFamily: 'Nunito, sans-serif', letterSpacing: '0.05em' }}>⭐ TOP MATCH</div>}
-
-      {/* Corps cliquable → site */}
-      <a href={raquette.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'flex', gap: 10, padding: '10px', alignItems: 'flex-start', flex: 1 }}
+      <a href={raquette.url} target="_blank" rel="noopener noreferrer"
+        style={{ textDecoration: 'none', display: 'flex', gap: 10, padding: '10px', alignItems: 'flex-start', flex: 1 }}
         onMouseEnter={e => e.currentTarget.style.background = '#F8F9FB'}
         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
         <div style={{ width: 56, height: 56, background: '#F0F3FF', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden', position: 'relative' }}>
@@ -147,8 +139,6 @@ function RaquetteCard({ raquette, rank, onVoirProfil }) {
           </div>
         </div>
       </a>
-
-      {/* Footer */}
       <div style={{ borderTop: '0.5px solid #EEF0F6', padding: '6px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <button onClick={() => onVoirProfil(raquette)} style={{ fontFamily: 'Nunito, sans-serif', fontSize: 10, fontWeight: 700, color: COULEUR_PROP, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
           📊 Voir le profil
@@ -162,42 +152,43 @@ function RaquetteCard({ raquette, rank, onVoirProfil }) {
 }
 
 export default function ResultatsPage() {
-  const [resultats, setResultats]   = useState([])
-  const [quiz, setQuiz]             = useState(null)
-  const [loading, setLoading]       = useState(true)
-  const [erreur, setErreur]         = useState(null)
-  const [visibles, setVisibles]     = useState(PAGE_SIZE)
+  const [resultats, setResultats]         = useState([])
+  const [quiz, setQuiz]                   = useState(null)
+  const [loading, setLoading]             = useState(true)
+  const [erreur, setErreur]               = useState(null)
+  const [visibles, setVisibles]           = useState(PAGE_SIZE)
   const [modalRaquette, setModalRaquette] = useState(null)
-  const [email, setEmail]           = useState('')
-  const [emailEnvoye, setEmailEnvoye] = useState(false)
+  const [email, setEmail]                 = useState('')
+  const [emailEnvoye, setEmailEnvoye]     = useState(false)
 
   useEffect(() => {
-    const stored = sessionStorage.getItem('quiz_data')
-    if (!stored) { setErreur('Quiz introuvable'); setLoading(false); return }
-    const quizData = JSON.parse(stored)
-    setQuiz(quizData)
-    fetch('/api/score', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(quizData),
-    })
-      .then(r => r.json())
-      .then(data => {
-        if (data.resultats) setResultats(data.resultats)
-        else setErreur(data.error || 'Erreur')
-        setLoading(false)
-      })
-      .catch(() => { setErreur('Erreur réseau'); setLoading(false) })
+    // Lecture des clés correctes stockées par app/page.jsx
+    const storedResultats = sessionStorage.getItem('selector_resultats')
+    const storedQuiz      = sessionStorage.getItem('selector_quiz')
+
+    if (!storedResultats) {
+      setErreur('Aucun résultat trouvé — merci de refaire le quiz.')
+      setLoading(false)
+      return
+    }
+
+    try {
+      setResultats(JSON.parse(storedResultats))
+      if (storedQuiz) setQuiz(JSON.parse(storedQuiz))
+    } catch {
+      setErreur('Erreur de lecture des résultats.')
+    }
+    setLoading(false)
   }, [])
 
   async function envoyerEmail() {
-    if (!email || !quiz) return
+    if (!email) return
     setEmailEnvoye(true)
     try {
       await fetch('/api/score', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...quiz, email }),
+        body: JSON.stringify({ quiz, email }),
       })
     } catch (e) {}
   }
@@ -206,7 +197,6 @@ export default function ResultatsPage() {
 
   return (
     <main style={{ minHeight: '100vh', background: 'var(--fond)' }}>
-      {/* Header */}
       <header style={{ background: 'var(--blanc)', borderBottom: '1px solid var(--bordure)', padding: '14px 20px', position: 'sticky', top: 0, zIndex: 100 }}>
         <div style={{ maxWidth: 720, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontFamily: 'var(--font)', fontSize: 18, fontWeight: 900, color: 'var(--bleu)' }}>EL <span style={{ color: 'var(--jaune)' }}>SELECTOR</span></span>
@@ -215,7 +205,6 @@ export default function ResultatsPage() {
       </header>
 
       <div className="container" style={{ paddingTop: 20, paddingBottom: 80 }}>
-        {/* Résumé quiz */}
         {quiz && (
           <div style={{ background: 'var(--blanc)', border: '1px solid var(--bordure)', borderRadius: 12, padding: '12px 14px', marginBottom: 20 }}>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 14px', alignItems: 'center' }}>
@@ -235,7 +224,7 @@ export default function ResultatsPage() {
         {loading ? (
           <div style={{ textAlign: 'center', padding: '60px 0' }}>
             <div className="spinner" style={{ margin: '0 auto 16px' }} />
-            <p style={{ fontFamily: 'var(--font)', fontWeight: 700, color: 'var(--texte-muted)', fontSize: 14 }}>Analyse de ton profil…</p>
+            <p style={{ fontFamily: 'var(--font)', fontWeight: 700, color: 'var(--texte-muted)', fontSize: 14 }}>Chargement…</p>
           </div>
         ) : erreur ? (
           <div style={{ textAlign: 'center', padding: '60px 0' }}>
@@ -256,7 +245,6 @@ export default function ResultatsPage() {
               <span style={{ fontFamily: 'var(--font)', fontSize: 12, fontWeight: 700, color: 'var(--texte-muted)' }}>{resultats.length} résultats</span>
             </div>
 
-            {/* Grille 2 colonnes */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
               {resultats.slice(0, visibles).map((r, i) => (
                 <RaquetteCard key={r.id} raquette={r} rank={i + 1} onVoirProfil={setModalRaquette} />
@@ -270,7 +258,6 @@ export default function ResultatsPage() {
               </button>
             )}
 
-            {/* Email après résultats */}
             {!emailEnvoye ? (
               <div style={{ background: '#fff', border: '1.5px solid #E8EAF0', borderRadius: 14, padding: '18px 16px', marginTop: 8, textAlign: 'center' }}>
                 <p style={{ fontFamily: 'Nunito, sans-serif', fontSize: 14, fontWeight: 900, color: '#1A1A2E', marginBottom: 4 }}>📧 Reçois ton TOP 3 par email</p>
@@ -291,7 +278,6 @@ export default function ResultatsPage() {
         )}
       </div>
 
-      {/* Modal profil */}
       {modalRaquette && <ModalProfil raquette={modalRaquette} onClose={() => setModalRaquette(null)} />}
     </main>
   )
