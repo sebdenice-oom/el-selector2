@@ -178,7 +178,7 @@ function RaquetteReference({ raquette }) {
   const prixRef = hasPromo ? raquette.compareAtPrice : raquette.price
 
   return (
-    <div style={{ background: '#fff', border: `1.5px solid #E8EAF0`, borderRadius: 14, overflow: 'hidden', marginBottom: 20 }}>
+    <div style={{ background: '#fff', border: `1.5px solid #E8EAF0`, borderRadius: 14, overflow: 'hidden', marginBottom: 12, position: 'sticky', top: 57, zIndex: 90 }}>
       <div style={{ background: '#F8F9FB', padding: '6px 14px', fontSize: 10, fontWeight: 800, letterSpacing: '0.05em', color: '#888', fontFamily: 'Nunito, sans-serif' }}>
         TA RAQUETTE ACTUELLE
       </div>
