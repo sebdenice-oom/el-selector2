@@ -54,12 +54,9 @@ export default function QuizPage() {
   // La modale est masquée si on arrive avec ?retour=1 dans l'URL
   const [modaleVisible, setModaleVisible] = useState(() => {
     if (typeof window === 'undefined') return true
-    // Masquer si retour depuis résultats (?retour=1) ou si étape déjà en cours
+    // Masquer UNIQUEMENT si on revient depuis les résultats via ?retour=1
     const params = new URLSearchParams(window.location.search)
-    if (params.get('retour') === '1') return false
-    // Masquer si le quiz était déjà en cours (sessionStorage présent)
-    if (sessionStorage.getItem('selector_quiz')) return false
-    return true
+    return params.get('retour') !== '1'
   })
   const [etape, setEtape] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -68,7 +65,25 @@ export default function QuizPage() {
     }
     return 0
   })
-  const [reponses, setReponses] = useState({ budget: 150, sensation: [], budgetIllimite: false })
+  const [reponses, setReponses] = useState(() => {
+    // Recharger les réponses précédentes si on revient modifier un critère
+    if (typeof window !== 'undefined') {
+      const storedQuiz = sessionStorage.getItem('selector_quiz')
+      if (storedQuiz) {
+        try {
+          const q = JSON.parse(storedQuiz)
+          return {
+            genre: q.genre || '',
+            niveau: q.niveau || '',
+            budget: q.budget >= 99999 ? 150 : (q.budget || 150),
+            budgetIllimite: q.budget >= 99999 || q.budgetIllimite || false,
+            sensation: q.sensation || [],
+          }
+        } catch(e) {}
+      }
+    }
+    return { budget: 150, sensation: [], budgetIllimite: false }
+  })
   const [loading, setLoading] = useState(false)
   const [erreur, setErreur] = useState('')
 
