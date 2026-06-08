@@ -142,7 +142,7 @@ function RaquetteCard({ raquette, rank, raquetteActuelle, isJoffrey = false }) {
           <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 12, fontWeight: 900, color: '#1A1A2E' }}>❤️ Le coup de cœur de Joffrey</span>
         </div>
       )}
-      {isTop && <div style={{ background: COULEUR_PROP, color: '#fff', padding: '5px 14px', fontSize: 11, fontWeight: 800, letterSpacing: '0.05em', fontFamily: 'Nunito, sans-serif' }}>🚀 Meilleure évolution</div>}
+      {isTop && <div style={{ background: COULEUR_PROP, color: '#fff', padding: '8px 14px', fontSize: 13, fontWeight: 900, letterSpacing: '0.05em', fontFamily: 'Nunito, sans-serif' }}>🚀 Meilleure évolution</div>}
 
       {/* Tuile cliquable */}
       <a href={raquette.url} target="_blank" rel="noopener noreferrer"
@@ -154,7 +154,7 @@ function RaquetteCard({ raquette, rank, raquetteActuelle, isJoffrey = false }) {
           {!isTop && <div style={{ position: 'absolute', top: 3, left: 3, background: '#F8F9FB', border: '1px solid #E8EAF0', borderRadius: 6, padding: '1px 5px', fontSize: 9, fontWeight: 800, color: '#888', fontFamily: 'Nunito, sans-serif' }}>#{rank}</div>}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: 13, fontWeight: 800, color: '#1A1A2E', lineHeight: 1.3, marginBottom: 4 }}>{raquette.title}</div>
+          <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: 15, fontWeight: 900, color: '#1A1A2E', lineHeight: 1.3, marginBottom: 6 }}>{raquette.title}</div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 4, flexWrap: 'wrap' }}>
             <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 18, fontWeight: 900, color: hasPromo ? '#D85A30' : COULEUR_PROP }}>{parseFloat(raquette.price).toFixed(2)} €</span>
             {hasPromo && <>
@@ -162,11 +162,11 @@ function RaquetteCard({ raquette, rank, raquetteActuelle, isJoffrey = false }) {
               <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 10, fontWeight: 800, background: '#FEE8E0', color: '#D85A30', padding: '1px 6px', borderRadius: 100 }}>-{remise}%</span>
             </>}
           </div>
-          <div style={{ display: 'flex', gap: 5, alignItems: 'center', flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 12, fontWeight: 900, background: '#EEF2FF', color: COULEUR_PROP, padding: '3px 10px', borderRadius: 100 }}>{raquette.scoreFinal}% match</span>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 4 }}>
+            <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 14, fontWeight: 900, background: '#EEF2FF', color: COULEUR_PROP, padding: '4px 12px', borderRadius: 100 }}>{raquette.scoreFinal}% match</span>
             {raquette.precommande
-              ? <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 10, fontWeight: 700, background: '#FEF5E0', color: '#9A6B00', padding: '1px 7px', borderRadius: 7, border: '1px solid #F6BC3E' }}>🔜 Précommande</span>
-              : null}
+              ? <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 11, fontWeight: 700, background: '#FEF5E0', color: '#9A6B00', padding: '3px 10px', borderRadius: 7, border: '1px solid #F6BC3E' }}>🔜 Précommande</span>
+              : <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 11, fontWeight: 700, background: '#F0FAF4', color: '#1D9E75', padding: '3px 10px', borderRadius: 6 }}>✓ Stock</span>}
             <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 10, fontWeight: 700, color: '#aaa', marginLeft: 'auto' }}>Voir →</span>
           </div>
         </div>
@@ -425,7 +425,7 @@ export default function UpgradePage() {
         {loading ? (
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
             <div className="spinner" style={{ margin: '0 auto 12px' }} />
-            <p style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 700, color: '#888', fontSize: 13 }}>Calcul en cours…</p>
+            <p style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 700, color: '#888', fontSize: 14 }}>Ne bouge pas, ta future raquette est bientôt là ! 🎾</p>
           </div>
         ) : resultats.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
