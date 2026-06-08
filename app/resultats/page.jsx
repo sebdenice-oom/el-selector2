@@ -1,18 +1,23 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 const DIMS = ['Puissance', 'Confort', 'Spin', 'Contrôle', 'Tolérance', 'Maniabilité']
 const DIM_ICONS = { Puissance: '⚡', Confort: '🛡️', Spin: '🌀', Contrôle: '🎯', Tolérance: '💪', Maniabilité: '🏃' }
 const COULEUR_PROP = '#2B4EE5'
 const PAGE_SIZE = 6
+const BUDGET_ILLIMITE = 99999
 
 const LABEL_SENSATION = {
   puissance: '⚡ Puissance', maniabilite: '🏃 Maniabilité',
-  controle: '🎯 Contrôle', confort: '🛡️ Confort', spin: '🌀 Spin', tolerance: '💪 Tolérance',
+  controle: '🎯 Contrôle', confort: '🛡️ Confort',
+  spin: '🌀 Spin', tolerance: '💪 Tolérance',
 }
 const LABEL_NIVEAU = {
   debutant: 'Débutant', intermediaire: 'Intermédiaire', avance: 'Avancé', competition: 'Compétition',
 }
+// Index des étapes dans le quiz pour le retour
+const ETAPE_INDEX = { genre: 0, niveau: 1, budget: 2, sensation: 3 }
 
 function radarPoint(valeur, angle, cx, cy, r) {
   const offset = ((valeur - 50) / 50) * r
@@ -65,7 +70,6 @@ function ModalProfil({ raquette, onClose }) {
       <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '20px 20px 0 0', width: '100%', maxWidth: 520, maxHeight: '88vh', overflowY: 'auto', padding: '20px 16px 40px', position: 'relative' }}>
         <div style={{ width: 36, height: 4, background: '#E8EAF0', borderRadius: 2, margin: '0 auto 16px' }} />
         <button onClick={onClose} style={{ position: 'absolute', top: 16, right: 16, background: '#F8F9FB', border: 'none', borderRadius: '50%', width: 30, height: 30, fontSize: 15, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>✕</button>
-
         <div style={{ display: 'flex', gap: 12, marginBottom: 16, alignItems: 'flex-start' }}>
           <div style={{ width: 72, height: 72, background: '#F0F3FF', borderRadius: 12, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             {raquette.image ? <img src={raquette.image} alt={raquette.title} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: 32 }}>🏏</span>}
@@ -81,14 +85,11 @@ function ModalProfil({ raquette, onClose }) {
             </div>
           </div>
         </div>
-
         <div style={{ textAlign: 'center', marginBottom: 14 }}>
           <div style={{ fontSize: 11, color: '#888', fontFamily: 'Nunito, sans-serif' }}>Score de correspondance</div>
           <div style={{ fontSize: 28, fontWeight: 900, color: COULEUR_PROP, fontFamily: 'Nunito, sans-serif', lineHeight: 1.2 }}>{raquette.scoreFinal}%</div>
         </div>
-
         <RadarSolo schema={schema} />
-
         <div style={{ marginTop: 14 }}>
           {DIMS.filter(d => schema[d] !== undefined).map(d => (
             <div key={d} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', borderBottom: '0.5px solid #EEF0F6' }}>
@@ -98,7 +99,6 @@ function ModalProfil({ raquette, onClose }) {
             </div>
           ))}
         </div>
-
         <a href={raquette.url} target="_blank" rel="noopener noreferrer"
           style={{ display: 'block', width: '100%', padding: '14px', background: COULEUR_PROP, color: '#fff', border: 'none', borderRadius: 12, fontFamily: 'Nunito, sans-serif', fontSize: 14, fontWeight: 800, cursor: 'pointer', marginTop: 20, textAlign: 'center', textDecoration: 'none' }}>
           Voir la raquette sur le site →
@@ -152,6 +152,7 @@ function RaquetteCard({ raquette, rank, onVoirProfil }) {
 }
 
 export default function ResultatsPage() {
+  const router = useRouter()
   const [resultats, setResultats]         = useState([])
   const [quiz, setQuiz]                   = useState(null)
   const [loading, setLoading]             = useState(true)
@@ -162,24 +163,20 @@ export default function ResultatsPage() {
   const [emailEnvoye, setEmailEnvoye]     = useState(false)
 
   useEffect(() => {
-    // Lecture des clés correctes stockées par app/page.jsx
     const storedResultats = sessionStorage.getItem('selector_resultats')
     const storedQuiz      = sessionStorage.getItem('selector_quiz')
-
-    if (!storedResultats) {
-      setErreur('Aucun résultat trouvé — merci de refaire le quiz.')
-      setLoading(false)
-      return
-    }
-
+    if (!storedResultats) { setErreur('Aucun résultat — merci de refaire le quiz.'); setLoading(false); return }
     try {
       setResultats(JSON.parse(storedResultats))
       if (storedQuiz) setQuiz(JSON.parse(storedQuiz))
-    } catch {
-      setErreur('Erreur de lecture des résultats.')
-    }
+    } catch { setErreur('Erreur de lecture des résultats.') }
     setLoading(false)
   }, [])
+
+  function retourEtape(etapeId) {
+    sessionStorage.setItem('selector_etape', String(ETAPE_INDEX[etapeId] || 0))
+    router.push('/')
+  }
 
   async function envoyerEmail() {
     if (!email) return
@@ -193,7 +190,7 @@ export default function ResultatsPage() {
     } catch (e) {}
   }
 
-  const budgetIllimite = quiz?.budget >= 99999
+  const budgetIllimite = quiz?.budget >= BUDGET_ILLIMITE || quiz?.budgetIllimite
 
   return (
     <main style={{ minHeight: '100vh', background: 'var(--fond)' }}>
@@ -205,18 +202,29 @@ export default function ResultatsPage() {
       </header>
 
       <div className="container" style={{ paddingTop: 20, paddingBottom: 80 }}>
+
+        {/* Résumé avec tags cliquables */}
         {quiz && (
           <div style={{ background: 'var(--blanc)', border: '1px solid var(--bordure)', borderRadius: 12, padding: '12px 14px', marginBottom: 20 }}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 14px', alignItems: 'center' }}>
-              <span style={{ fontFamily: 'var(--font)', fontSize: 11, fontWeight: 700, color: 'var(--texte-muted)' }}>
-                {quiz.genre} · {LABEL_NIVEAU[quiz.niveau] || quiz.niveau} · {budgetIllimite ? 'Budget illimité' : `${quiz.budget} €`}
-              </span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+              <button onClick={() => retourEtape('genre')}
+                style={{ fontFamily: 'var(--font)', fontSize: 11, fontWeight: 700, background: '#F8F9FB', color: 'var(--texte)', border: '1px solid var(--bordure)', padding: '4px 10px', borderRadius: 100, cursor: 'pointer' }}>
+                {quiz.genre} ✏️
+              </button>
+              <button onClick={() => retourEtape('niveau')}
+                style={{ fontFamily: 'var(--font)', fontSize: 11, fontWeight: 700, background: '#F8F9FB', color: 'var(--texte)', border: '1px solid var(--bordure)', padding: '4px 10px', borderRadius: 100, cursor: 'pointer' }}>
+                {LABEL_NIVEAU[quiz.niveau] || quiz.niveau} ✏️
+              </button>
+              <button onClick={() => retourEtape('budget')}
+                style={{ fontFamily: 'var(--font)', fontSize: 11, fontWeight: 700, background: '#F8F9FB', color: 'var(--texte)', border: '1px solid var(--bordure)', padding: '4px 10px', borderRadius: 100, cursor: 'pointer' }}>
+                {budgetIllimite ? 'Budget illimité' : `${quiz.budget} €`} ✏️
+              </button>
               {(Array.isArray(quiz.sensation) ? quiz.sensation : [quiz.sensation]).map(s => (
-                <span key={s} style={{ fontFamily: 'var(--font)', fontSize: 11, fontWeight: 700, background: 'var(--bleu-light)', color: 'var(--bleu)', padding: '2px 8px', borderRadius: 100 }}>
-                  {LABEL_SENSATION[s] || s}
-                </span>
+                <button key={s} onClick={() => retourEtape('sensation')}
+                  style={{ fontFamily: 'var(--font)', fontSize: 11, fontWeight: 700, background: 'var(--bleu-light)', color: 'var(--bleu)', border: '1px solid #C8D3F9', padding: '4px 10px', borderRadius: 100, cursor: 'pointer' }}>
+                  {LABEL_SENSATION[s] || s} ✏️
+                </button>
               ))}
-              <a href="/" style={{ fontFamily: 'var(--font)', fontSize: 11, fontWeight: 700, color: 'var(--texte-muted)', textDecoration: 'none', marginLeft: 'auto' }}>Modifier ✏️</a>
             </div>
           </div>
         )}
