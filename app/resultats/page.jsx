@@ -129,7 +129,7 @@ function RaquetteCard({ raquette, rank, onVoirProfil, isJoffrey = false }) {
           <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 12, fontWeight: 900, color: '#1A1A2E' }}>❤️ Le coup de cœur de Joffrey</span>
         </div>
       )}
-      {isTop && <div style={{ background: COULEUR_PROP, color: '#fff', fontSize: 9, fontWeight: 800, padding: '3px 10px', fontFamily: 'Nunito, sans-serif', letterSpacing: '0.05em' }}>⭐ TOP MATCH</div>}
+      {isTop && <div style={{ background: COULEUR_PROP, color: '#fff', fontSize: 12, fontWeight: 900, padding: '7px 14px', fontFamily: 'Nunito, sans-serif', letterSpacing: '0.05em' }}>⭐ TOP MATCH</div>}
       <a href={raquette.url} target="_blank" rel="noopener noreferrer"
         style={{ textDecoration: 'none', display: 'flex', gap: 10, padding: '10px', alignItems: 'flex-start', flex: 1 }}
         onMouseEnter={e => e.currentTarget.style.background = '#F8F9FB'}
@@ -139,17 +139,17 @@ function RaquetteCard({ raquette, rank, onVoirProfil, isJoffrey = false }) {
           {!isTop && <div style={{ position: 'absolute', top: 2, left: 2, background: '#F8F9FB', border: '1px solid #E8EAF0', borderRadius: 5, padding: '1px 4px', fontSize: 8, fontWeight: 800, color: '#888', fontFamily: 'Nunito, sans-serif' }}>#{rank}</div>}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: 13, fontWeight: 800, color: '#1A1A2E', lineHeight: 1.3, marginBottom: 4 }}>{raquette.title}</div>
+          <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: 15, fontWeight: 900, color: '#1A1A2E', lineHeight: 1.3, marginBottom: 6 }}>{raquette.title}</div>
           <div style={{ marginBottom: 4 }}>
             <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 18, fontWeight: 900, color: hasPromo ? '#D85A30' : COULEUR_PROP }}>{parseFloat(raquette.price).toFixed(2)} €</span>
             {hasPromo && <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 10, fontWeight: 700, color: '#aaa', textDecoration: 'line-through', marginLeft: 4 }}>{parseFloat(raquette.compareAtPrice).toFixed(2)} €</span>}
             {hasPromo && <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 9, fontWeight: 800, background: '#FEE8E0', color: '#D85A30', padding: '1px 5px', borderRadius: 100, marginLeft: 3 }}>-{remise}%</span>}
           </div>
-          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 12, fontWeight: 800, background: '#EEF2FF', color: COULEUR_PROP, padding: '3px 10px', borderRadius: 100 }}>{raquette.scoreFinal}%</span>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 4 }}>
+            <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 14, fontWeight: 900, background: '#EEF2FF', color: COULEUR_PROP, padding: '4px 12px', borderRadius: 100 }}>{raquette.scoreFinal}% match</span>
             {raquette.precommande
-              ? <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 9, fontWeight: 700, background: '#FEF5E0', color: '#9A6B00', padding: '1px 5px', borderRadius: 6, border: '1px solid #F6BC3E' }}>🔜 Préco.</span>
-              : <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 9, fontWeight: 700, background: '#F0FAF4', color: '#1D9E75', padding: '1px 5px', borderRadius: 6 }}>✓ Stock</span>}
+              ? <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 11, fontWeight: 700, background: '#FEF5E0', color: '#9A6B00', padding: '3px 10px', borderRadius: 6, border: '1px solid #F6BC3E' }}>🔜 Précommande</span>
+              : <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 11, fontWeight: 700, background: '#F0FAF4', color: '#1D9E75', padding: '3px 10px', borderRadius: 6 }}>✓ Stock</span>}
           </div>
         </div>
       </a>
