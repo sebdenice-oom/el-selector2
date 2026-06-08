@@ -54,8 +54,12 @@ export default function QuizPage() {
   // La modale est masquée si on arrive avec ?retour=1 dans l'URL
   const [modaleVisible, setModaleVisible] = useState(() => {
     if (typeof window === 'undefined') return true
+    // Masquer si retour depuis résultats (?retour=1) ou si étape déjà en cours
     const params = new URLSearchParams(window.location.search)
-    return params.get('retour') !== '1'
+    if (params.get('retour') === '1') return false
+    // Masquer si le quiz était déjà en cours (sessionStorage présent)
+    if (sessionStorage.getItem('selector_quiz')) return false
+    return true
   })
   const [etape, setEtape] = useState(() => {
     if (typeof window !== 'undefined') {
