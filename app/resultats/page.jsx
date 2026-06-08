@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 const DIMS = ['Puissance', 'Confort', 'Spin', 'Contrôle', 'Tolérance', 'Maniabilité']
 const DIM_ICONS = { Puissance: '⚡', Confort: '🛡️', Spin: '🌀', Contrôle: '🎯', Tolérance: '💪', Maniabilité: '🏃' }
 const COULEUR_PROP = '#2B4EE5'
-const PAGE_SIZE = 6
+const PAGE_SIZE = 3
 const BUDGET_ILLIMITE = 99999
 
 const LABEL_SENSATION = {
@@ -104,6 +104,74 @@ function ModalProfil({ raquette, onClose }) {
           Voir la raquette sur le site →
         </a>
       </div>
+    </div>
+  )
+}
+
+
+const JOFFREY_PHOTO = 'https://el-selector2.vercel.app/joffrey.jpg'
+
+function JoffreyCard({ raquette }) {
+  const hasPromo = raquette.compareAtPrice && raquette.compareAtPrice > raquette.price
+  const remise = hasPromo ? Math.round((1 - raquette.price / raquette.compareAtPrice) * 100) : 0
+  const [expanded, setExpanded] = useState(false)
+
+  return (
+    <div style={{
+      gridColumn: '1 / -1',
+      border: '2px solid #F6BC3E',
+      borderRadius: 14, overflow: 'hidden', background: '#fff',
+      boxShadow: '0 4px 20px rgba(246,188,62,0.20)',
+      marginBottom: 2,
+    }}>
+      <div style={{ background: 'linear-gradient(90deg, #F6BC3E, #f0a500)', padding: '6px 14px', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <img src={JOFFREY_PHOTO} alt="Joffrey" style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', border: '2px solid #fff', flexShrink: 0 }} />
+        <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 12, fontWeight: 900, color: '#1A1A2E' }}>
+          Le coup de cœur de Joffrey ⭐
+        </span>
+      </div>
+      <a href={raquette.url} target="_blank" rel="noopener noreferrer"
+        style={{ display: 'flex', gap: 12, padding: '12px 14px', textDecoration: 'none' }}
+        onMouseEnter={e => e.currentTarget.style.background = '#FFFDF0'}
+        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+        <div style={{ width: 64, height: 64, flexShrink: 0, background: '#FFF8E0', borderRadius: 10, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {raquette.image ? <img src={raquette.image} alt={raquette.title} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: 28 }}>🏏</span>}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: 13, fontWeight: 800, color: '#1A1A2E', lineHeight: 1.3, marginBottom: 4 }}>{raquette.title}</div>
+          <div style={{ marginBottom: 4 }}>
+            <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 17, fontWeight: 900, color: hasPromo ? '#D85A30' : '#1A1A2E' }}>{parseFloat(raquette.price).toFixed(2)} €</span>
+            {hasPromo && <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 11, fontWeight: 700, color: '#aaa', textDecoration: 'line-through', marginLeft: 5 }}>{parseFloat(raquette.compareAtPrice).toFixed(2)} €</span>}
+            {hasPromo && <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 10, fontWeight: 800, background: '#FEE8E0', color: '#D85A30', padding: '1px 6px', borderRadius: 100, marginLeft: 4 }}>-{remise}%</span>}
+          </div>
+          <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+            <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 11, fontWeight: 800, background: '#FEF5E0', color: '#9A6B00', padding: '2px 9px', borderRadius: 100, border: '1px solid #F6BC3E' }}>{raquette.scoreFinal}% match</span>
+            {raquette.precommande
+              ? <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 9, fontWeight: 700, background: '#FEF5E0', color: '#9A6B00', padding: '1px 5px', borderRadius: 6, border: '1px solid #F6BC3E' }}>🔜 Préco.</span>
+              : <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 9, fontWeight: 700, background: '#F0FAF4', color: '#1D9E75', padding: '1px 5px', borderRadius: 6 }}>✓ Stock</span>}
+            <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 10, fontWeight: 700, color: '#aaa', marginLeft: 'auto' }}>Voir →</span>
+          </div>
+        </div>
+      </a>
+      <div style={{ borderTop: '1px solid #FEF0C0', padding: '6px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#FFFDF5' }}>
+        <button onClick={() => setExpanded(e => !e)}
+          style={{ fontFamily: 'Nunito, sans-serif', fontSize: 10, fontWeight: 700, color: '#9A6B00', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+          📊 Voir le profil
+        </button>
+        <a href={raquette.url} target="_blank" rel="noopener noreferrer"
+          style={{ fontFamily: 'Nunito, sans-serif', fontSize: 10, fontWeight: 700, color: '#aaa', textDecoration: 'none' }}>Voir →</a>
+      </div>
+      {expanded && (
+        <div style={{ padding: '14px', borderTop: '1px solid #FEF0C0', background: '#FFFDF5' }}>
+          {Object.entries(raquette.schema || {}).filter(([k]) => ['Puissance','Confort','Spin','Contrôle','Tolérance','Maniabilité'].includes(k)).map(([k, v]) => (
+            <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', borderBottom: '0.5px solid #FEF0C0' }}>
+              <span style={{ fontSize: 13, width: 20, textAlign: 'center' }}>{{'Puissance':'⚡','Confort':'🛡️','Spin':'🌀','Contrôle':'🎯','Tolérance':'💪','Maniabilité':'🏃'}[k]}</span>
+              <span style={{ fontSize: 12, color: '#888', flex: 1, fontFamily: 'Nunito, sans-serif' }}>{k}</span>
+              <span style={{ fontSize: 15, fontWeight: 900, color: '#9A6B00', fontFamily: 'Nunito, sans-serif' }}>{v}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -255,7 +323,9 @@ export default function ResultatsPage() {
 
             <div className="resultats-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
               {resultats.slice(0, visibles).map((r, i) => (
-                <RaquetteCard key={r.id} raquette={r} rank={i + 1} onVoirProfil={setModalRaquette} />
+                r.isJoffrey
+                  ? <JoffreyCard key={r.id + '_joffrey'} raquette={r} />
+                  : <RaquetteCard key={r.id} raquette={r} rank={i + 1} onVoirProfil={setModalRaquette} />
               ))}
             </div>
 
