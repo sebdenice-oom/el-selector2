@@ -13,12 +13,12 @@ export async function POST(request) {
     }
 
     const raquettes = await getRaquettes()
-    const top = scoreRaquettes(raquettes, quiz, 12)
+    const top = scoreRaquettes(raquettes, quiz, 10)
 
     if (top.length === 0) {
       return Response.json({
         resultats: [],
-        message: "Aucune raquette ne correspond à votre profil. Essayez d'élargir votre budget."
+        message: 'Aucune raquette ne correspond à votre profil. Essayez d\'élargir votre budget.'
       })
     }
 
@@ -46,7 +46,6 @@ export async function POST(request) {
       image: r.image,
       imageAlt: r.imageAlt,
       price: r.price,
-      compareAtPrice: r.compareAtPrice || null,
       stock: r.stock,
       precommande: r.precommande || false,
       genre: r.genre,
@@ -54,6 +53,8 @@ export async function POST(request) {
       schema: r.schema,
       scoreFinal: r.scoreFinal,
       scoreTech: Math.round(r.scoreTech),
+      compareAtPrice: r.compareAtPrice || null,
+      isJoffrey: r.isJoffrey || false,
     }))
 
     return Response.json({ resultats: resultatsPublics })
