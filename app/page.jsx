@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 const BUDGET_ILLIMITE = 99999
@@ -51,12 +51,13 @@ const RANG_LABEL = ['1er', '2e', '3e']
 
 export default function QuizPage() {
   const router = useRouter()
-  const [modaleVisible, setModaleVisible] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return !sessionStorage.getItem('selector_quiz_started')
+  const [modaleVisible, setModaleVisible] = useState(true)
+
+  useEffect(() => {
+    if (sessionStorage.getItem('selector_quiz_started')) {
+      setModaleVisible(false)
     }
-    return true
-  })
+  }, [])
   const [etape, setEtape] = useState(() => {
     if (typeof window !== 'undefined') {
       const stored = sessionStorage.getItem('selector_etape')
