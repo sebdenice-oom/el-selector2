@@ -51,13 +51,12 @@ const RANG_LABEL = ['1er', '2e', '3e']
 
 export default function QuizPage() {
   const router = useRouter()
-  const [modaleVisible, setModaleVisible] = useState(true)
-
-  useEffect(() => {
-    if (sessionStorage.getItem('selector_quiz_started')) {
-      setModaleVisible(false)
-    }
-  }, [])
+  // La modale est masquée si on arrive avec ?retour=1 dans l'URL
+  const [modaleVisible, setModaleVisible] = useState(() => {
+    if (typeof window === 'undefined') return true
+    const params = new URLSearchParams(window.location.search)
+    return params.get('retour') !== '1'
+  })
   const [etape, setEtape] = useState(() => {
     if (typeof window !== 'undefined') {
       const stored = sessionStorage.getItem('selector_etape')
@@ -106,7 +105,15 @@ export default function QuizPage() {
   }
 
   function avancer() {
-    if (etapeIndex < ETAPES.length - 1) setEtape(etapeIndex + 1)
+    const prochaine = etapeIndex + 1
+    if (prochaine >= ETAPES.length) return
+    // Si Junior, on saute l'étape niveau (index 1)
+    if (ETAPES[prochaine]?.id === 'niveau' && reponses.genre === 'Junior') {
+      setReponses(prev => ({ ...prev, niveau: 'debutant' })) // niveau par défaut pour junior
+      setEtape(prochaine + 1)
+    } else {
+      setEtape(prochaine)
+    }
   }
 
   async function suivant() {
@@ -137,7 +144,6 @@ export default function QuizPage() {
       if (!res.ok) throw new Error(data.error || 'Erreur serveur')
       sessionStorage.setItem('selector_resultats', JSON.stringify(data.resultats))
       sessionStorage.setItem('selector_quiz', JSON.stringify(quiz))
-      sessionStorage.removeItem('selector_quiz_started')
       router.push('/resultats')
     } catch (e) {
       setErreur('Une erreur est survenue. Veuillez réessayer.')
@@ -150,7 +156,7 @@ export default function QuizPage() {
       <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--fond)' }}>
         <div style={{ textAlign: 'center' }}>
           <div className="spinner" style={{ margin: '0 auto 20px' }} />
-          <p style={{ color: 'var(--texte-muted)', fontFamily: 'var(--font)', fontWeight: 700 }}>Analyse de ton profil…</p>
+          <p style={{ color: 'var(--texte-muted)', fontFamily: 'var(--font)', fontWeight: 700 }}>Ne bouge pas, ta future raquette est bientôt là ! 🎾</p>
         </div>
       </main>
     )
@@ -176,7 +182,7 @@ export default function QuizPage() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <button
-                onClick={() => { sessionStorage.setItem('selector_quiz_started', '1'); setModaleVisible(false) }}
+                onClick={() => { setModaleVisible(false) }}
                 style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', background: '#F8F9FB', border: '2px solid #E8EAF0', borderRadius: 14, cursor: 'pointer', textAlign: 'left', transition: 'border-color .15s' }}
                 onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--bleu)'}
                 onMouseLeave={e => e.currentTarget.style.borderColor = '#E8EAF0'}>
