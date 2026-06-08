@@ -51,7 +51,12 @@ const RANG_LABEL = ['1er', '2e', '3e']
 
 export default function QuizPage() {
   const router = useRouter()
-  const [modaleVisible, setModaleVisible] = useState(true)
+  const [modaleVisible, setModaleVisible] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return !sessionStorage.getItem('selector_quiz_started')
+    }
+    return true
+  })
   const [etape, setEtape] = useState(() => {
     if (typeof window !== 'undefined') {
       const stored = sessionStorage.getItem('selector_etape')
@@ -131,6 +136,7 @@ export default function QuizPage() {
       if (!res.ok) throw new Error(data.error || 'Erreur serveur')
       sessionStorage.setItem('selector_resultats', JSON.stringify(data.resultats))
       sessionStorage.setItem('selector_quiz', JSON.stringify(quiz))
+      sessionStorage.removeItem('selector_quiz_started')
       router.push('/resultats')
     } catch (e) {
       setErreur('Une erreur est survenue. Veuillez réessayer.')
@@ -169,7 +175,7 @@ export default function QuizPage() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <button
-                onClick={() => setModaleVisible(false)}
+                onClick={() => { sessionStorage.setItem('selector_quiz_started', '1'); setModaleVisible(false) }}
                 style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', background: '#F8F9FB', border: '2px solid #E8EAF0', borderRadius: 14, cursor: 'pointer', textAlign: 'left', transition: 'border-color .15s' }}
                 onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--bleu)'}
                 onMouseLeave={e => e.currentTarget.style.borderColor = '#E8EAF0'}>
