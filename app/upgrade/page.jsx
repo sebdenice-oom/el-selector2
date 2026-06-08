@@ -310,7 +310,7 @@ function SlidersIntegres({ cibles, ciblesInitiales, raquetteActuelle, onChangeCi
                 <input type="range" min={0} max={100} step={1} value={valeurCible}
                   onChange={e => onChangeCible(d, parseInt(e.target.value))}
                   style={{ width: '100%' }} />
-                <div style={{ position: 'absolute', left: `${valeurActuelle}%`, top: 0, bottom: 0, width: 2, background: '#C8D3F9', borderRadius: 1, pointerEvents: 'none', transform: 'translateX(-50%)' }} />
+                <div style={{ position: 'absolute', left: `calc(${valeurActuelle}% - ${(valeurActuelle / 100) * 22 - 11}px)`, top: 0, bottom: 0, width: 2, background: '#C8D3F9', borderRadius: 1, pointerEvents: 'none', transform: 'translateX(-50%)' }} />
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 1 }}>
                 <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 9, color: '#ccc' }}>0</span>
