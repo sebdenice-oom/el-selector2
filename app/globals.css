@@ -89,3 +89,32 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
   to { opacity: 1; transform: translateY(0); }
 }
 .fade-up { animation: fadeUp 0.35s ease both; }
+/* ===== RESPONSIVE MOBILE ===== */
+@media (max-width: 600px) {
+
+  /* Textes plus lisibles */
+  body { font-size: 15px; }
+
+  /* Container moins serré */
+  .container { padding-left: 14px; padding-right: 14px; }
+
+  /* Grille résultats : 1 colonne sur mobile */
+  .resultats-grid { grid-template-columns: 1fr !important; }
+
+  /* Level cards : 2 colonnes conservées mais plus compactes */
+  .level-card { padding: 16px 8px; }
+  .level-card-icon { font-size: 30px; margin-bottom: 6px; }
+  .level-card-label { font-size: 13px; }
+
+  /* Sliders intégrés : 1 colonne sur mobile */
+  .sliders-grid { grid-template-columns: 1fr !important; }
+
+  /* Radar : plus petit sur mobile */
+  .radar-svg { width: 160px !important; height: 170px !important; }
+
+  /* Score % plus visible */
+  .score-match { font-size: 13px !important; padding: 3px 10px !important; }
+
+  /* Modal plein écran sur mobile */
+  .modal-box { max-height: 95vh !important; border-radius: 16px 16px 0 0 !important; }
+}
