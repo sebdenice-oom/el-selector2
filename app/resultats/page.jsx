@@ -188,19 +188,19 @@ function RaquetteCard({ raquette, rank, onVoirProfil }) {
         style={{ textDecoration: 'none', display: 'flex', gap: 10, padding: '10px', alignItems: 'flex-start', flex: 1 }}
         onMouseEnter={e => e.currentTarget.style.background = '#F8F9FB'}
         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-        <div style={{ width: 56, height: 56, background: '#F0F3FF', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden', position: 'relative' }}>
+        <div style={{ width: 80, height: 80, background: '#F0F3FF', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden', position: 'relative' }}>
           {raquette.image ? <img src={raquette.image} alt={raquette.title} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: 28 }}>🏏</span>}
           {!isTop && <div style={{ position: 'absolute', top: 2, left: 2, background: '#F8F9FB', border: '1px solid #E8EAF0', borderRadius: 5, padding: '1px 4px', fontSize: 8, fontWeight: 800, color: '#888', fontFamily: 'Nunito, sans-serif' }}>#{rank}</div>}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: 11, fontWeight: 800, color: '#1A1A2E', lineHeight: 1.3, marginBottom: 4 }}>{raquette.title}</div>
+          <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: 13, fontWeight: 800, color: '#1A1A2E', lineHeight: 1.3, marginBottom: 4 }}>{raquette.title}</div>
           <div style={{ marginBottom: 4 }}>
-            <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 15, fontWeight: 900, color: hasPromo ? '#D85A30' : COULEUR_PROP }}>{parseFloat(raquette.price).toFixed(2)} €</span>
+            <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 18, fontWeight: 900, color: hasPromo ? '#D85A30' : COULEUR_PROP }}>{parseFloat(raquette.price).toFixed(2)} €</span>
             {hasPromo && <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 10, fontWeight: 700, color: '#aaa', textDecoration: 'line-through', marginLeft: 4 }}>{parseFloat(raquette.compareAtPrice).toFixed(2)} €</span>}
             {hasPromo && <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 9, fontWeight: 800, background: '#FEE8E0', color: '#D85A30', padding: '1px 5px', borderRadius: 100, marginLeft: 3 }}>-{remise}%</span>}
           </div>
           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 10, fontWeight: 800, background: '#EEF2FF', color: COULEUR_PROP, padding: '1px 7px', borderRadius: 100 }}>{raquette.scoreFinal}%</span>
+            <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 12, fontWeight: 800, background: '#EEF2FF', color: COULEUR_PROP, padding: '3px 10px', borderRadius: 100 }}>{raquette.scoreFinal}%</span>
             {raquette.precommande
               ? <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 9, fontWeight: 700, background: '#FEF5E0', color: '#9A6B00', padding: '1px 5px', borderRadius: 6, border: '1px solid #F6BC3E' }}>🔜 Préco.</span>
               : <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 9, fontWeight: 700, background: '#F0FAF4', color: '#1D9E75', padding: '1px 5px', borderRadius: 6 }}>✓ Stock</span>}
@@ -321,7 +321,7 @@ export default function ResultatsPage() {
               <span style={{ fontFamily: 'var(--font)', fontSize: 12, fontWeight: 700, color: 'var(--texte-muted)' }}>{resultats.length} résultats</span>
             </div>
 
-            <div className="resultats-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
+            <div className="resultats-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12, marginBottom: 16 }}>
               {resultats.slice(0, visibles).map((r, i) => (
                 r.isJoffrey
                   ? <JoffreyCard key={r.id + '_joffrey'} raquette={r} />
