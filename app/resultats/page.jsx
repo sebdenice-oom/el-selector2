@@ -175,7 +175,7 @@ export default function ResultatsPage() {
 
   function retourEtape(etapeId) {
     sessionStorage.setItem('selector_etape', String(ETAPE_INDEX[etapeId] || 0))
-    router.push('/')
+    router.push('/?retour=1')
   }
 
   async function envoyerEmail() {
@@ -253,7 +253,7 @@ export default function ResultatsPage() {
               <span style={{ fontFamily: 'var(--font)', fontSize: 12, fontWeight: 700, color: 'var(--texte-muted)' }}>{resultats.length} résultats</span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
+            <div className="resultats-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
               {resultats.slice(0, visibles).map((r, i) => (
                 <RaquetteCard key={r.id} raquette={r} rank={i + 1} onVoirProfil={setModalRaquette} />
               ))}
