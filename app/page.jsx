@@ -4,15 +4,15 @@ import { useRouter } from 'next/navigation'
 
 const ETAPES = [
   {
-  id: 'genre',
-  titre: 'Tu es ?',
-  type: 'level_cards',
-  options: [
-    { value: 'Homme', label: 'Homme', image: 'https://cdn.shopify.com/s/files/1/0430/1861/6996/files/Homme.png?v=1780521845' },
-    { value: 'Femme', label: 'Femme', image: 'https://cdn.shopify.com/s/files/1/0430/1861/6996/files/image_2026-06-03_232351053.png?v=1780521834' },
-    { value: 'Junior', label: 'Enfant', icon: '🧒' },
-  ],
-},
+    id: 'genre',
+    titre: 'Tu es ?',
+    type: 'level_cards',
+    options: [
+      { value: 'Homme', label: 'Homme', image: 'https://cdn.shopify.com/s/files/1/0430/1861/6996/files/Homme.png?v=1780521845' },
+      { value: 'Femme', label: 'Femme', image: 'https://cdn.shopify.com/s/files/1/0430/1861/6996/files/image_2026-06-03_232351053.png?v=1780521834' },
+      { value: 'Junior', label: 'Enfant', icon: '🧒' },
+    ],
+  },
   {
     id: 'niveau',
     titre: 'Quel est ton niveau de jeu ?',
@@ -51,6 +51,7 @@ const RANG_LABEL = ['1er', '2e', '3e']
 
 export default function QuizPage() {
   const router = useRouter()
+  const [modaleVisible, setModaleVisible] = useState(true)
   const [etape, setEtape] = useState(0)
   const [reponses, setReponses] = useState({ budget: 150, sensation: [] })
   const [loading, setLoading] = useState(false)
@@ -110,7 +111,7 @@ export default function QuizPage() {
       var res = await fetch('/api/score', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quiz: quiz, email: reponses.email || null, customerId: null }),
+        body: JSON.stringify({ quiz: quiz, email: null, customerId: null }),
       })
       var data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Erreur serveur')
@@ -138,6 +139,69 @@ export default function QuizPage() {
 
   return (
     <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--fond)' }}>
+
+      {/* MODALE D'ENTRÉE */}
+      {modaleVisible && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ background: '#fff', borderRadius: 20, padding: '32px 24px', maxWidth: 480, width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
+            <div style={{ textAlign: 'center', marginBottom: 28 }}>
+              <span style={{ fontFamily: 'var(--font)', fontSize: 22, fontWeight: 900, color: 'var(--bleu)' }}>
+                EL <span style={{ color: 'var(--jaune)' }}>SELECTOR</span>
+              </span>
+              <p style={{ fontFamily: 'var(--font)', fontSize: 16, fontWeight: 800, color: '#1A1A2E', marginTop: 16, marginBottom: 6 }}>
+                Tu as déjà une raquette de padel ?
+              </p>
+              <p style={{ fontFamily: 'var(--font)', fontSize: 13, fontWeight: 600, color: '#888' }}>
+                On t'oriente vers le bon outil
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <button
+                onClick={() => setModaleVisible(false)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 16,
+                  padding: '16px 20px', background: '#F8F9FB',
+                  border: '2px solid #E8EAF0', borderRadius: 14,
+                  cursor: 'pointer', textAlign: 'left', transition: 'border-color .15s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--bleu)'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = '#E8EAF0'}>
+                <span style={{ fontSize: 28 }}>🏏</span>
+                <div>
+                  <div style={{ fontFamily: 'var(--font)', fontSize: 14, fontWeight: 800, color: '#1A1A2E', marginBottom: 2 }}>
+                    Non, je cherche ma première raquette
+                  </div>
+                  <div style={{ fontFamily: 'var(--font)', fontSize: 12, fontWeight: 600, color: '#888' }}>
+                    El Selector — quiz en 4 étapes
+                  </div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => router.push('/upgrade')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 16,
+                  padding: '16px 20px', background: '#F0F3FF',
+                  border: '2px solid #C8D3F9', borderRadius: 14,
+                  cursor: 'pointer', textAlign: 'left', transition: 'border-color .15s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--bleu)'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = '#C8D3F9'}>
+                <span style={{ fontSize: 28 }}>🚀</span>
+                <div>
+                  <div style={{ fontFamily: 'var(--font)', fontSize: 14, fontWeight: 800, color: '#1A1A2E', marginBottom: 2 }}>
+                    Oui, je veux évoluer
+                  </div>
+                  <div style={{ fontFamily: 'var(--font)', fontSize: 12, fontWeight: 600, color: '#888' }}>
+                    El Evoluteur — trouve ta prochaine raquette
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <header style={{ background: 'var(--blanc)', borderBottom: '1px solid var(--bordure)', padding: '14px 20px' }}>
         <div style={{ maxWidth: 680, margin: '0 auto' }}>
