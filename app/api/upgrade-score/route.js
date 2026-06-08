@@ -44,6 +44,7 @@ export async function POST(request) {
       stock: r.stock, precommande: r.precommande || false,
       genre: r.genre, poids: r.poids, schema: r.schema,
       scoreFinal: r.scoreFinal, scoreTech: r.scoreTech,
+      isJoffrey: r.isJoffrey || false,
     }))
 
     return Response.json({ resultats })
