@@ -1,6 +1,36 @@
 'use client'
 import { useState, useEffect, useCallback, useRef } from 'react'
 
+const STORE_URL = 'https://esprit-padel-shop.myshopify.com'
+
+async function ajouterAuPanier(variantId, fallbackHandle) {
+  try {
+    if (variantId && process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN) {
+      const res = await fetch(`${STORE_URL}/api/2026-04/graphql.json`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Storefront-Access-Token': process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN,
+        },
+        body: JSON.stringify({
+          query: `mutation cartCreate($lines: [CartLineInput!]!) {
+            cartCreate(input: { lines: $lines }) {
+              cart { checkoutUrl }
+            }
+          }`,
+          variables: { lines: [{ merchandiseId: variantId, quantity: 1 }] }
+        }),
+      })
+      const data = await res.json()
+      const checkoutUrl = data?.data?.cartCreate?.cart?.checkoutUrl
+      if (checkoutUrl) { window.location.href = checkoutUrl; return }
+    }
+  } catch(e) {}
+  window.location.href = fallbackHandle
+    ? `${STORE_URL}/products/${fallbackHandle}`
+    : `${STORE_URL}/cart`
+}
+
 const DIMS = ['Puissance', 'Confort', 'Spin', 'Contrôle', 'Tolérance', 'Maniabilité']
 const DIM_ICONS = { Puissance: '⚡', Confort: '🛡️', Spin: '🌀', Contrôle: '🎯', Tolérance: '💪', Maniabilité: '🏃' }
 const COULEUR_REF = '#D4537E'
@@ -130,9 +160,20 @@ function JoffreyCard({ raquette, raquetteActuelle }) {
 
 function RaquetteCard({ raquette, rank, raquetteActuelle, isJoffrey = false }) {
   const [expanded, setExpanded] = useState(false)
+  const [ajoutLoading, setAjoutLoading] = useState(false)
   const isTop    = rank === 1 && !isJoffrey
   const hasPromo = raquette.compareAtPrice && raquette.compareAtPrice > raquette.price
   const remise   = hasPromo ? Math.round((1 - raquette.price / raquette.compareAtPrice) * 100) : 0
+  const couleurAccent = isJoffrey ? '#9A6B00' : COULEUR_PROP
+  const bgPanier = isJoffrey ? '#F6BC3E' : COULEUR_PROP
+  const textPanier = isJoffrey ? '#1A1A2E' : '#fff'
+
+  async function handlePanier(e) {
+    e.preventDefault(); e.stopPropagation()
+    setAjoutLoading(true)
+    await ajouterAuPanier(raquette.variantId, raquette.handle)
+    setAjoutLoading(false)
+  }
 
   return (
     <div style={{ background: '#fff', border: `1.5px solid ${isJoffrey ? '#F6BC3E' : isTop ? COULEUR_PROP : '#E8EAF0'}`, borderRadius: 14, overflow: 'hidden', marginBottom: 10, boxShadow: isJoffrey ? '0 4px 20px rgba(246,188,62,0.20)' : isTop ? '0 4px 20px rgba(43,78,229,0.10)' : 'none' }}>
@@ -144,40 +185,48 @@ function RaquetteCard({ raquette, rank, raquetteActuelle, isJoffrey = false }) {
       )}
       {isTop && <div style={{ background: COULEUR_PROP, color: '#fff', padding: '8px 14px', fontSize: 13, fontWeight: 900, letterSpacing: '0.05em', fontFamily: 'Nunito, sans-serif' }}>🚀 Meilleure évolution</div>}
 
-      {/* Tuile cliquable */}
+      {/* Corps cliquable → fiche produit */}
       <a href={raquette.url} target="_blank" rel="noopener noreferrer"
-        style={{ display: 'flex', gap: 12, padding: '12px 14px', textDecoration: 'none', transition: 'background .1s' }}
+        style={{ display: 'flex', gap: 12, padding: '12px 14px', textDecoration: 'none' }}
         onMouseEnter={e => e.currentTarget.style.background = '#F8F9FB'}
         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-        <div style={{ width: 64, height: 64, flexShrink: 0, background: '#F0F3FF', borderRadius: 10, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+        <div style={{ width: 72, height: 72, flexShrink: 0, background: isJoffrey ? '#FFF8E0' : '#F0F3FF', borderRadius: 10, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
           {raquette.image ? <img src={raquette.image} alt={raquette.title} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : <span style={{ fontSize: 28 }}>🏏</span>}
-          {!isTop && <div style={{ position: 'absolute', top: 3, left: 3, background: '#F8F9FB', border: '1px solid #E8EAF0', borderRadius: 6, padding: '1px 5px', fontSize: 9, fontWeight: 800, color: '#888', fontFamily: 'Nunito, sans-serif' }}>#{rank}</div>}
+          {!isTop && !isJoffrey && <div style={{ position: 'absolute', top: 2, left: 2, background: '#F8F9FB', border: '1px solid #E8EAF0', borderRadius: 5, padding: '1px 4px', fontSize: 8, fontWeight: 800, color: '#888', fontFamily: 'Nunito, sans-serif' }}>#{rank}</div>}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: 15, fontWeight: 900, color: '#1A1A2E', lineHeight: 1.3, marginBottom: 6 }}>{raquette.title}</div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 4, flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 18, fontWeight: 900, color: hasPromo ? '#D85A30' : COULEUR_PROP }}>{parseFloat(raquette.price).toFixed(2)} €</span>
+          <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: 15, fontWeight: 900, color: '#1A1A2E', lineHeight: 1.3, marginBottom: 5 }}>{raquette.title}</div>
+          <div style={{ marginBottom: 5 }}>
+            <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 18, fontWeight: 900, color: hasPromo ? '#D85A30' : couleurAccent }}>{parseFloat(raquette.price).toFixed(2)} €</span>
             {hasPromo && <>
-              <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 12, fontWeight: 700, color: '#aaa', textDecoration: 'line-through' }}>{parseFloat(raquette.compareAtPrice).toFixed(2)} €</span>
-              <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 10, fontWeight: 800, background: '#FEE8E0', color: '#D85A30', padding: '1px 6px', borderRadius: 100 }}>-{remise}%</span>
+              <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 11, fontWeight: 700, color: '#aaa', textDecoration: 'line-through', marginLeft: 5 }}>{parseFloat(raquette.compareAtPrice).toFixed(2)} €</span>
+              <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 9, fontWeight: 800, background: '#FEE8E0', color: '#D85A30', padding: '1px 5px', borderRadius: 100, marginLeft: 4 }}>-{remise}%</span>
             </>}
           </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 4 }}>
-            <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 14, fontWeight: 900, background: '#EEF2FF', color: COULEUR_PROP, padding: '4px 12px', borderRadius: 100 }}>{raquette.scoreFinal}% match</span>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 13, fontWeight: 800, background: isJoffrey ? '#FEF5E0' : '#EEF2FF', color: couleurAccent, padding: '3px 10px', borderRadius: 100, border: isJoffrey ? '1px solid #F6BC3E' : 'none' }}>{raquette.scoreFinal}% match</span>
             {raquette.precommande
-              ? <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 11, fontWeight: 700, background: '#FEF5E0', color: '#9A6B00', padding: '3px 10px', borderRadius: 7, border: '1px solid #F6BC3E' }}>🔜 Précommande</span>
-              : <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 11, fontWeight: 700, background: '#F0FAF4', color: '#1D9E75', padding: '3px 10px', borderRadius: 6 }}>✓ Stock</span>}
-            <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 10, fontWeight: 700, color: '#aaa', marginLeft: 'auto' }}>Voir →</span>
+              ? <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 10, fontWeight: 700, background: '#FEF5E0', color: '#9A6B00', padding: '2px 8px', borderRadius: 6, border: '1px solid #F6BC3E' }}>🔜 Préco.</span>
+              : <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 10, fontWeight: 700, background: '#F0FAF4', color: '#1D9E75', padding: '2px 8px', borderRadius: 6 }}>✓ Stock</span>}
+            <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 10, fontWeight: 700, color: '#aaa', marginLeft: 'auto' }}>Voir la fiche →</span>
           </div>
         </div>
       </a>
 
-      {/* Toggle comparaison */}
-      <button onClick={() => setExpanded(e => !e)}
-        style={{ width: '100%', background: 'none', border: 'none', borderTop: '0.5px solid #EEF0F6', padding: '8px 14px', fontFamily: 'Nunito, sans-serif', fontSize: 11, fontWeight: 700, color: '#666', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-        {expanded ? 'Masquer la comparaison' : 'Voir la comparaison'}
-        <span style={{ display: 'inline-block', transition: 'transform .2s', transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)', fontSize: 9 }}>▼</span>
-      </button>
+      {/* Footer : Voir comparaison | Ajouter au panier */}
+      <div style={{ borderTop: '0.5px solid #EEF0F6', display: 'flex' }}>
+        <button onClick={() => setExpanded(e => !e)}
+          style={{ flex: 1, padding: '11px 10px', background: 'none', border: 'none', borderRight: '0.5px solid #EEF0F6', color: couleurAccent, fontFamily: 'Nunito, sans-serif', fontSize: 12, fontWeight: 700, cursor: 'pointer', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}
+          onMouseEnter={e => e.currentTarget.style.background = '#F8F9FB'}
+          onMouseLeave={e => e.currentTarget.style.background = 'none'}>
+          📊 {expanded ? 'Masquer' : 'Voir la comparaison'}
+          <span style={{ display: 'inline-block', transition: 'transform .2s', transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)', fontSize: 9 }}>▼</span>
+        </button>
+        <button onClick={handlePanier}
+          style={{ flex: 1, padding: '11px 10px', background: bgPanier, border: 'none', color: textPanier, fontFamily: 'Nunito, sans-serif', fontSize: 12, fontWeight: 700, cursor: 'pointer', textAlign: 'center', opacity: ajoutLoading ? 0.7 : 1 }}>
+          {ajoutLoading ? '⏳ Ajout...' : '🛒 Ajouter au panier'}
+        </button>
+      </div>
 
       {expanded && (
         <div style={{ padding: '0 14px 14px', borderTop: '0.5px solid #EEF0F6', background: '#FAFBFF' }}>
