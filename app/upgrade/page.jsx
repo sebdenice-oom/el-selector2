@@ -3,32 +3,21 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 
 const STORE_URL = 'https://esprit-padel-shop.myshopify.com'
 
-async function ajouterAuPanier(variantId, fallbackHandle) {
+async function ajouterAuPanier(variantId, handle) {
   try {
-    if (variantId && process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN) {
-      const res = await fetch(`${STORE_URL}/api/2026-04/graphql.json`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Shopify-Storefront-Access-Token': process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN,
-        },
-        body: JSON.stringify({
-          query: `mutation cartCreate($lines: [CartLineInput!]!) {
-            cartCreate(input: { lines: $lines }) {
-              cart { checkoutUrl }
-            }
-          }`,
-          variables: { lines: [{ merchandiseId: variantId, quantity: 1 }] }
-        }),
-      })
-      const data = await res.json()
-      const checkoutUrl = data?.data?.cartCreate?.cart?.checkoutUrl
-      if (checkoutUrl) { window.location.href = checkoutUrl; return }
-    }
-  } catch(e) {}
-  window.location.href = fallbackHandle
-    ? `${STORE_URL}/products/${fallbackHandle}`
-    : `${STORE_URL}/cart`
+    const res = await fetch('/api/cart', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ variantId, handle }),
+    })
+    const data = await res.json()
+    if (data.url) window.location.href = data.url
+    else window.location.href = `${STORE_URL}/cart`
+  } catch(e) {
+    window.location.href = handle
+      ? `${STORE_URL}/products/${handle}`
+      : `${STORE_URL}/cart`
+  }
 }
 
 const DIMS = ['Puissance', 'Confort', 'Spin', 'Contrôle', 'Tolérance', 'Maniabilité']
