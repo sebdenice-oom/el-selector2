@@ -44,8 +44,8 @@ export async function POST(request) {
     // "gid://shopify/ProductVariant/12345678" → "12345678"
     const variantNumericId = finalVariantId.split('/').pop()
 
-    // URL de checkout direct Shopify
-    const checkoutUrl = `https://${domain}/cart/${variantNumericId}:1`
+    // URL panier Shopify (ajoute au panier et affiche la page panier)
+    const checkoutUrl = `https://${domain}/cart/add?id=${variantNumericId}&quantity=1&return_to=/cart`
 
     return Response.json({ url: checkoutUrl })
 
