@@ -45,6 +45,7 @@ export async function POST(request) {
       genre: r.genre, poids: r.poids, schema: r.schema,
       scoreFinal: r.scoreFinal, scoreTech: r.scoreTech,
       isJoffrey: r.isJoffrey || false,
+      variantId: r.variantId || null,
     }))
 
     return Response.json({ resultats })
