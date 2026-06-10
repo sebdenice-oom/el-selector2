@@ -136,9 +136,20 @@ function JoffreyCard({ raquette, onVoirProfil }) {
 
 
 function RaquetteCard({ raquette, rank, onVoirProfil, isJoffrey = false }) {
+  const [ajoutLoading, setAjoutLoading] = useState(false)
   const isTop = rank === 1 && !isJoffrey
   const hasPromo = raquette.compareAtPrice && raquette.compareAtPrice > raquette.price
   const remise = hasPromo ? Math.round((1 - raquette.price / raquette.compareAtPrice) * 100) : 0
+  const couleurAccent = isJoffrey ? '#9A6B00' : COULEUR_PROP
+  const bgPanier = isJoffrey ? '#F6BC3E' : COULEUR_PROP
+  const textPanier = isJoffrey ? '#1A1A2E' : '#fff'
+
+  async function handlePanier(e) {
+    e.preventDefault(); e.stopPropagation()
+    setAjoutLoading(true)
+    await ajouterAuPanier(raquette.variantId, raquette.handle)
+    setAjoutLoading(false)
+  }
 
   return (
     <div style={{ border: `1.5px solid ${isJoffrey ? '#F6BC3E' : isTop ? COULEUR_PROP : '#E8EAF0'}`, borderRadius: 12, overflow: 'hidden', background: '#fff', boxShadow: isJoffrey ? '0 4px 20px rgba(246,188,62,0.20)' : isTop ? '0 4px 16px rgba(43,78,229,0.12)' : 'none', display: 'flex', flexDirection: 'column' }}>
@@ -165,20 +176,25 @@ function RaquetteCard({ raquette, rank, onVoirProfil, isJoffrey = false }) {
             {hasPromo && <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 9, fontWeight: 800, background: '#FEE8E0', color: '#D85A30', padding: '1px 5px', borderRadius: 100, marginLeft: 3 }}>-{remise}%</span>}
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 4 }}>
-            <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 14, fontWeight: 900, background: '#EEF2FF', color: COULEUR_PROP, padding: '4px 12px', borderRadius: 100 }}>{raquette.scoreFinal}% match</span>
+            <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 13, fontWeight: 800, background: isJoffrey ? '#FEF5E0' : '#EEF2FF', color: couleurAccent, padding: '3px 10px', borderRadius: 100, border: isJoffrey ? '1px solid #F6BC3E' : 'none' }}>{raquette.scoreFinal}% match</span>
             {raquette.precommande
-              ? <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 11, fontWeight: 700, background: '#FEF5E0', color: '#9A6B00', padding: '3px 10px', borderRadius: 6, border: '1px solid #F6BC3E' }}>🔜 Précommande</span>
-              : <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 11, fontWeight: 700, background: '#F0FAF4', color: '#1D9E75', padding: '3px 10px', borderRadius: 6 }}>✓ Stock</span>}
+              ? <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 10, fontWeight: 700, background: '#FEF5E0', color: '#9A6B00', padding: '2px 8px', borderRadius: 6, border: '1px solid #F6BC3E' }}>🔜 Préco.</span>
+              : <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 10, fontWeight: 700, background: '#F0FAF4', color: '#1D9E75', padding: '2px 8px', borderRadius: 6 }}>✓ Stock</span>}
+            <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 10, fontWeight: 700, color: '#aaa', marginLeft: 'auto' }}>Voir la fiche →</span>
           </div>
         </div>
       </a>
-      <div style={{ borderTop: '0.5px solid #EEF0F6', padding: '6px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <button onClick={() => onVoirProfil(raquette)} style={{ fontFamily: 'Nunito, sans-serif', fontSize: 10, fontWeight: 700, color: COULEUR_PROP, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+      <div style={{ borderTop: '0.5px solid #EEF0F6', display: 'flex' }}>
+        <button onClick={() => onVoirProfil(raquette)}
+          style={{ flex: 1, padding: '11px 10px', background: 'none', border: 'none', borderRight: '0.5px solid #EEF0F6', color: couleurAccent, fontFamily: 'Nunito, sans-serif', fontSize: 12, fontWeight: 700, cursor: 'pointer', textAlign: 'center' }}
+          onMouseEnter={e => e.currentTarget.style.background = '#F8F9FB'}
+          onMouseLeave={e => e.currentTarget.style.background = 'none'}>
           📊 Voir le profil
         </button>
-        <a href={raquette.url} target="_blank" rel="noopener noreferrer" style={{ fontFamily: 'Nunito, sans-serif', fontSize: 10, fontWeight: 700, color: '#aaa', textDecoration: 'none' }}>
-          Voir →
-        </a>
+        <button onClick={handlePanier}
+          style={{ flex: 1, padding: '11px 10px', background: bgPanier, border: 'none', color: textPanier, fontFamily: 'Nunito, sans-serif', fontSize: 12, fontWeight: 700, cursor: 'pointer', textAlign: 'center', opacity: ajoutLoading ? 0.7 : 1 }}>
+          {ajoutLoading ? '⏳ Ajout...' : '🛒 Ajouter au panier'}
+        </button>
       </div>
     </div>
   )
