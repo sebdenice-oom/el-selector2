@@ -55,6 +55,7 @@ export async function POST(request) {
       scoreTech: Math.round(r.scoreTech),
       compareAtPrice: r.compareAtPrice || null,
       isJoffrey: r.isJoffrey || false,
+      variantId: r.variantId || null,
     }))
 
     return Response.json({ resultats: resultatsPublics })
