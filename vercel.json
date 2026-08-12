@@ -1,8 +1,12 @@
 {
   "crons": [
     {
-      "path": "/api/cron-rotation",
+      "path": "/api/cron-catalogue",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron-rotation",
+      "schedule": "0 4 * * *"
     }
   ]
 }
