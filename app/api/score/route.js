@@ -5,15 +5,19 @@ import { identifyProfile, trackQuizComplete } from '../../../lib/klaviyo'
 export async function POST(request) {
   try {
     const body = await request.json()
-    const { quiz, email, customerId } = body
+    const { quiz, email, customerId, gene } = body
     const { genre, niveau, budget, sensation } = quiz
 
     if (!genre || !niveau || !budget || !sensation || sensation.length === 0) {
       return Response.json({ error: 'Champs quiz manquants' }, { status: 400 })
     }
 
+    // `gene` = donnée de santé éphémère : utilisée seulement pour le calcul,
+    // jamais stockée ni transmise (ni Klaviyo, ni métachamp client, ni GA4).
+    const geneValide = ['aucune', 'passee', 'importante'].includes(gene) ? gene : 'aucune'
+
     const raquettes = await getRaquettes()
-    const top = scoreRaquettes(raquettes, quiz, 10)
+    const top = scoreRaquettes(raquettes, quiz, 10, geneValide)
 
     if (top.length === 0) {
       return Response.json({

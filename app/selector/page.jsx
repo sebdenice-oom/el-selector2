@@ -47,6 +47,18 @@ const ETAPES = [
       { value: 'tolerance',   label: '💪 Tolérance' },
     ],
   },
+  {
+    id: 'gene',
+    titre: 'Ressens-tu des gênes en jouant ?',
+    sous_titre: "Bras, coude, épaule, poignet — ça change la raquette qu'on te conseille.",
+    type: 'radio_cards',
+    note: "Cette réponse sert uniquement à filtrer les raquettes pendant ta session. Elle n'est pas conservée et ne remplace pas un avis médical.",
+    options: [
+      { value: 'aucune',     label: 'Rien à signaler',        desc: 'Aucune gêne particulière.' },
+      { value: 'passee',     label: 'Oui, dans le passé',     desc: "C'est passé, mais je préfère rester prudent." },
+      { value: 'importante', label: 'Oui, une gêne importante', desc: "Ça me gêne aujourd'hui quand je joue." },
+    ],
+  },
 ]
 
 const RANG_LABEL = ['1er', '2e', '3e']
@@ -137,6 +149,7 @@ export default function QuizPage() {
   function peutContinuer() {
     if (etapeActuelle.type === 'slider') return true
     if (etapeActuelle.type === 'gauge') return !!valeurActuelle()
+    if (etapeActuelle.type === 'radio_cards') return !!valeurActuelle()
     if (etapeActuelle.type === 'ranked_chips') return (reponses.sensation || []).length >= 1
     return !!valeurActuelle()
   }
@@ -175,7 +188,8 @@ export default function QuizPage() {
       var res = await fetch('/api/score', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quiz: quiz, email: null, customerId: null }),
+        // `gene` est transmis à part (jamais dans `quiz`) : utilisé pour le calcul, ni stocké ni renvoyé à Klaviyo/GA4.
+        body: JSON.stringify({ quiz: quiz, gene: reponses.gene || 'aucune', email: null, customerId: null }),
       })
       var data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Erreur serveur')
@@ -318,6 +332,43 @@ export default function QuizPage() {
           )
         })()}
 
+        {etapeActuelle.type === 'radio_cards' && (
+          <div style={{ maxWidth: 520, margin: '0 auto' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {etapeActuelle.options.map(function(opt) {
+                var actif = valeurActuelle() === opt.value
+                return (
+                  <button key={opt.value}
+                    onClick={function() { selectionner(opt.value) }}
+                    style={{
+                      display: 'flex', alignItems: 'flex-start', gap: 14, textAlign: 'left',
+                      padding: '16px 18px', borderRadius: 14, cursor: 'pointer', width: '100%',
+                      background: actif ? 'var(--bleu-light)' : 'var(--blanc)',
+                      border: '2px solid ' + (actif ? 'var(--bleu)' : 'var(--bordure)'),
+                      transition: 'border-color .15s, background .15s',
+                    }}>
+                    <span style={{
+                      flex: 'none', width: 20, height: 20, marginTop: 2, borderRadius: '50%',
+                      border: '2px solid ' + (actif ? 'var(--bleu)' : '#C8CEDA'),
+                      background: actif ? 'var(--bleu)' : 'transparent',
+                      boxShadow: actif ? 'inset 0 0 0 3px var(--blanc)' : 'none',
+                    }} />
+                    <span>
+                      <span style={{ display: 'block', fontFamily: 'var(--font)', fontSize: 15, fontWeight: 800, color: 'var(--texte)' }}>{opt.label}</span>
+                      <span style={{ display: 'block', fontFamily: 'var(--font)', fontSize: 13, fontWeight: 600, color: 'var(--texte-muted)', marginTop: 2 }}>{opt.desc}</span>
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+            {etapeActuelle.note && (
+              <p style={{ fontFamily: 'var(--font)', fontSize: 12, fontWeight: 600, color: 'var(--texte-muted)', textAlign: 'center', marginTop: 18, lineHeight: 1.5 }}>
+                {etapeActuelle.note}
+              </p>
+            )}
+          </div>
+        )}
+
         {etapeActuelle.type === 'slider' && (() => {
           var budgetAffiche = reponses.budget >= BUDGET_ILLIMITE ? 500 : reponses.budget
           return (
@@ -424,7 +475,7 @@ export default function QuizPage() {
           <p style={{ color: '#D32F2F', fontSize: 14, marginTop: 12, textAlign: 'center', fontWeight: 700 }}>{erreur}</p>
         )}
 
-        {(etapeActuelle.type === 'slider' || etapeActuelle.type === 'ranked_chips' || etapeActuelle.type === 'gauge') && (
+        {(etapeActuelle.type === 'slider' || etapeActuelle.type === 'ranked_chips' || etapeActuelle.type === 'gauge' || etapeActuelle.type === 'radio_cards') && (
           <div style={{ maxWidth: 520, margin: '28px auto 0' }}>
             <button className="btn btn-primary" onClick={suivant} disabled={!peutContinuer()}>
               {etapeIndex === ETAPES.length - 1 ? 'Voir mes raquettes →' : 'Continuer →'}
