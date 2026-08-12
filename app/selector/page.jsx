@@ -7,12 +7,13 @@ const BUDGET_ILLIMITE = 99999
 const ETAPES = [
   {
     id: 'genre',
-    titre: 'Tu es ?',
+    titre: 'Pour qui cherches-tu une raquette ?',
+    sous_titre: 'On adapte les recommandations au gabarit et au jeu.',
     type: 'level_cards',
     options: [
       { value: 'Homme', label: 'Homme', image: 'https://cdn.shopify.com/s/files/1/0430/1861/6996/files/Homme.png?v=1780521845' },
       { value: 'Femme', label: 'Femme', image: 'https://cdn.shopify.com/s/files/1/0430/1861/6996/files/image_2026-06-03_232351053.png?v=1780521834' },
-      { value: 'Junior', label: 'Enfant', icon: '🧒' },
+      { value: 'Junior', label: 'Junior', illustration: 'junior' },
     ],
   },
   {
@@ -48,6 +49,28 @@ const ETAPES = [
 ]
 
 const RANG_LABEL = ['1er', '2e', '3e']
+
+// Illustration Junior — provisoire (dessin à refaire), aux couleurs de la marque.
+function JuniorIllus() {
+  return (
+    <svg viewBox="0 0 120 120" width="82" height="82" role="img" aria-label="Junior">
+      <g transform="rotate(18 90 46)">
+        <ellipse cx="90" cy="42" rx="15" ry="18" fill="#F6BC3E" stroke="#1A1A2E" strokeWidth="3" />
+        <circle cx="86" cy="38" r="1.5" fill="#1A1A2E" />
+        <circle cx="94" cy="38" r="1.5" fill="#1A1A2E" />
+        <circle cx="90" cy="46" r="1.5" fill="#1A1A2E" />
+        <line x1="90" y1="60" x2="90" y2="80" stroke="#1A1A2E" strokeWidth="4" strokeLinecap="round" />
+      </g>
+      <path d="M38 114 v-22 a20 20 0 0 1 40 0 v22 z" fill="#2B4EE5" />
+      <circle cx="58" cy="52" r="18" fill="#FFD9A8" stroke="#1A1A2E" strokeWidth="2.5" />
+      <path d="M40 50 a18 18 0 0 1 36 0 q-8 -6 -18 -6 t-18 6 z" fill="#1A1A2E" />
+      <circle cx="52" cy="53" r="2" fill="#1A1A2E" />
+      <circle cx="64" cy="53" r="2" fill="#1A1A2E" />
+      <path d="M53 61 q5 4 10 0" stroke="#1A1A2E" strokeWidth="2" fill="none" strokeLinecap="round" />
+      <line x1="72" y1="90" x2="86" y2="68" stroke="#2B4EE5" strokeWidth="7" strokeLinecap="round" />
+    </svg>
+  )
+}
 
 export default function QuizPage() {
   const router = useRouter()
@@ -213,7 +236,26 @@ export default function QuizPage() {
           </p>
         )}
 
-        {etapeActuelle.type === 'level_cards' && (
+        {etapeActuelle.type === 'level_cards' && etapeActuelle.id === 'genre' && (
+          <div className="genre-grid">
+            {etapeActuelle.options.map(function(opt) {
+              return (
+                <button key={opt.value}
+                  className={'genre-card' + (valeurActuelle() === opt.value ? ' active' : '')}
+                  onClick={function() { selectionner(opt.value); setTimeout(avancer, 200) }}>
+                  <div className="genre-illus">
+                    {opt.image
+                      ? <img src={opt.image} alt={opt.label} />
+                      : <JuniorIllus />}
+                  </div>
+                  <div className="genre-card-label">{opt.label}</div>
+                </button>
+              )
+            })}
+          </div>
+        )}
+
+        {etapeActuelle.type === 'level_cards' && etapeActuelle.id !== 'genre' && (
           <div className="level-grid">
             {etapeActuelle.options.map(function(opt) {
               return (
