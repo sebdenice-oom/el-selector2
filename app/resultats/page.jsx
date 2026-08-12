@@ -224,7 +224,7 @@ export default function ResultatsPage() {
 
   function retourEtape(etapeId) {
     sessionStorage.setItem('selector_etape', String(ETAPE_INDEX[etapeId] || 0))
-    router.push('/?retour=1')
+    router.push('/selector')
   }
 
   async function envoyerEmail() {
@@ -246,7 +246,7 @@ export default function ResultatsPage() {
       <header style={{ background: 'var(--blanc)', borderBottom: '1px solid var(--bordure)', padding: '14px 20px', position: 'sticky', top: 0, zIndex: 100 }}>
         <div style={{ maxWidth: 720, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontFamily: 'var(--font)', fontSize: 18, fontWeight: 900, color: 'var(--bleu)' }}>EL <span style={{ color: 'var(--jaune)' }}>SELECTOR</span></span>
-          <a href="/" style={{ fontFamily: 'var(--font)', fontSize: 12, fontWeight: 700, color: 'var(--texte-muted)', textDecoration: 'none' }}>← Recommencer</a>
+          <a href="/selector" style={{ fontFamily: 'var(--font)', fontSize: 12, fontWeight: 700, color: 'var(--texte-muted)', textDecoration: 'none' }}>← Recommencer</a>
         </div>
       </header>
 
@@ -286,12 +286,12 @@ export default function ResultatsPage() {
         ) : erreur ? (
           <div style={{ textAlign: 'center', padding: '60px 0' }}>
             <p style={{ fontFamily: 'var(--font)', fontSize: 16, fontWeight: 800, color: '#D85A30', marginBottom: 16 }}>{erreur}</p>
-            <a href="/" style={{ fontFamily: 'var(--font)', fontSize: 14, fontWeight: 800, color: '#fff', background: 'var(--bleu)', padding: '12px 24px', borderRadius: 12, textDecoration: 'none' }}>← Recommencer</a>
+            <a href="/selector" style={{ fontFamily: 'var(--font)', fontSize: 14, fontWeight: 800, color: '#fff', background: 'var(--bleu)', padding: '12px 24px', borderRadius: 12, textDecoration: 'none' }}>← Recommencer</a>
           </div>
         ) : resultats.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 0' }}>
             <p style={{ fontFamily: 'var(--font)', fontSize: 16, fontWeight: 800, marginBottom: 16 }}>Aucune raquette ne correspond à ton profil.</p>
-            <a href="/" style={{ fontFamily: 'var(--font)', fontSize: 14, fontWeight: 800, color: '#fff', background: 'var(--bleu)', padding: '12px 24px', borderRadius: 12, textDecoration: 'none' }}>← Modifier mes critères</a>
+            <a href="/selector" style={{ fontFamily: 'var(--font)', fontSize: 14, fontWeight: 800, color: '#fff', background: 'var(--bleu)', padding: '12px 24px', borderRadius: 12, textDecoration: 'none' }}>← Modifier mes critères</a>
           </div>
         ) : (
           <>

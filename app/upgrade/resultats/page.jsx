@@ -255,7 +255,7 @@ export default function UpgradePage() {
         <header style={{ background: 'var(--blanc)', borderBottom: '1px solid var(--bordure)', padding: '14px 20px' }}>
           <div style={{ maxWidth: 680, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontFamily: 'var(--font)', fontSize: 18, fontWeight: 900, color: 'var(--bleu)' }}>EL <span style={{ color: 'var(--jaune)' }}>SELECTOR</span></span>
-            <a href="/" style={{ fontFamily: 'var(--font)', fontSize: 12, fontWeight: 700, color: 'var(--texte-muted)', textDecoration: 'none' }}>← Nouveau joueur</a>
+            <a href="/selector" style={{ fontFamily: 'var(--font)', fontSize: 12, fontWeight: 700, color: 'var(--texte-muted)', textDecoration: 'none' }}>← Nouveau joueur</a>
           </div>
         </header>
         <div style={{ background: 'var(--blanc)', padding: '8px 20px 12px', borderBottom: '1px solid var(--bordure)' }}>
@@ -292,7 +292,7 @@ export default function UpgradePage() {
             {query.length >= 2 && suggestions.length === 0 && !loadingCatalogue && (
               <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100, background: 'var(--blanc)', border: '1.5px solid var(--bordure)', borderRadius: 14, marginTop: 6, padding: '20px 16px', textAlign: 'center', boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }}>
                 <p style={{ fontFamily: 'var(--font)', fontSize: 13, fontWeight: 700, color: 'var(--texte-muted)', marginBottom: 12 }}>Raquette introuvable dans notre catalogue</p>
-                <a href="/" style={{ fontFamily: 'var(--font)', fontSize: 13, fontWeight: 800, color: 'var(--blanc)', background: 'var(--bleu)', padding: '8px 16px', borderRadius: 10, textDecoration: 'none', display: 'inline-block' }}>Utiliser El Selector →</a>
+                <a href="/selector" style={{ fontFamily: 'var(--font)', fontSize: 13, fontWeight: 800, color: 'var(--blanc)', background: 'var(--bleu)', padding: '8px 16px', borderRadius: 10, textDecoration: 'none', display: 'inline-block' }}>Utiliser El Selector →</a>
               </div>
             )}
           </div>

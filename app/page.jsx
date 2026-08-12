@@ -1,402 +1,202 @@
-'use client'
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+// app/page.jsx — Page d'accueil El Selector
+// Aiguille le joueur vers le Selector (première raquette) ou l'Evoluteur (faire évoluer sa raquette).
 
-const BUDGET_ILLIMITE = 99999
+export const metadata = {
+  title: 'Trouve ta prochaine raquette de padel — El Selector',
+  description: "Tu débutes ou tu veux faire évoluer ta raquette de padel ? El Selector te guide vers la raquette qui te correspond, en quelques questions.",
+}
 
-const ETAPES = [
-  {
-    id: 'genre',
-    titre: 'Tu es ?',
-    type: 'level_cards',
-    options: [
-      { value: 'Homme', label: 'Homme', image: 'https://cdn.shopify.com/s/files/1/0430/1861/6996/files/Homme.png?v=1780521845' },
-      { value: 'Femme', label: 'Femme', image: 'https://cdn.shopify.com/s/files/1/0430/1861/6996/files/image_2026-06-03_232351053.png?v=1780521834' },
-      { value: 'Junior', label: 'Enfant', icon: '🧒' },
-    ],
-  },
-  {
-    id: 'niveau',
-    titre: 'Quel est ton niveau de jeu ?',
-    type: 'level_cards',
-    options: [
-      { value: 'debutant',      label: 'Débutant',      icon: '🎾' },
-      { value: 'intermediaire', label: 'Intermédiaire', icon: '🏆' },
-      { value: 'avance',        label: 'Avancé',        icon: '⚡' },
-      { value: 'competition',   label: 'Compétition',   icon: '🥇' },
-    ],
-  },
-  {
-    id: 'budget',
-    titre: 'Ton budget maximum',
-    type: 'slider',
-  },
-  {
-    id: 'sensation',
-    titre: 'Tes critères importants',
-    sous_titre: "Choisis jusqu'à 3 sensations par ordre d'importance",
-    type: 'ranked_chips',
-    options: [
-      { value: 'puissance',   label: '⚡ Puissance' },
-      { value: 'maniabilite', label: '🏃 Maniabilité' },
-      { value: 'controle',    label: '🎯 Contrôle' },
-      { value: 'confort',     label: '🛡️ Confort' },
-      { value: 'spin',        label: '🌀 Spin' },
-      { value: 'tolerance',   label: '💪 Tolérance' },
-    ],
-  },
-]
-
-const RANG_LABEL = ['1er', '2e', '3e']
-
-export default function QuizPage() {
-  const router = useRouter()
-  // La modale est masquée si on arrive avec ?retour=1 dans l'URL
-  const [modaleVisible, setModaleVisible] = useState(() => {
-    if (typeof window === 'undefined') return true
-    // Masquer UNIQUEMENT si on revient depuis les résultats via ?retour=1
-    const params = new URLSearchParams(window.location.search)
-    return params.get('retour') !== '1'
-  })
-  const [etape, setEtape] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const stored = sessionStorage.getItem('selector_etape')
-      if (stored !== null) { sessionStorage.removeItem('selector_etape'); return parseInt(stored) }
-    }
-    return 0
-  })
-  const [reponses, setReponses] = useState(() => {
-    // Recharger les réponses précédentes si on revient modifier un critère
-    if (typeof window !== 'undefined') {
-      const storedQuiz = sessionStorage.getItem('selector_quiz')
-      if (storedQuiz) {
-        try {
-          const q = JSON.parse(storedQuiz)
-          return {
-            genre: q.genre || '',
-            niveau: q.niveau || '',
-            budget: q.budget >= 99999 ? 150 : (q.budget || 150),
-            budgetIllimite: q.budget >= 99999 || q.budgetIllimite || false,
-            sensation: q.sensation || [],
-          }
-        } catch(e) {}
-      }
-    }
-    return { budget: 150, sensation: [], budgetIllimite: false }
-  })
-  const [loading, setLoading] = useState(false)
-  const [erreur, setErreur] = useState('')
-
-  const etapeIndex = Math.min(etape, ETAPES.length - 1)
-  const etapeActuelle = ETAPES[etapeIndex]
-  const progression = (etapeIndex / ETAPES.length) * 100
-
-  function selectionner(valeur) {
-    setReponses(function(prev) { return Object.assign({}, prev, { [etapeActuelle.id]: valeur }) })
-  }
-
-  function toggleSensation(valeur) {
-    setReponses(function(prev) {
-      var current = prev.sensation || []
-      if (current.includes(valeur)) {
-        return Object.assign({}, prev, { sensation: current.filter(function(v) { return v !== valeur }) })
-      }
-      if (current.length >= 3) return prev
-      return Object.assign({}, prev, { sensation: current.concat([valeur]) })
-    })
-  }
-
-  function toggleBudgetIllimite() {
-    setReponses(function(prev) {
-      return Object.assign({}, prev, {
-        budgetIllimite: !prev.budgetIllimite,
-        budget: !prev.budgetIllimite ? BUDGET_ILLIMITE : 150,
-      })
-    })
-  }
-
-  function valeurActuelle() { return reponses[etapeActuelle.id] }
-
-  function peutContinuer() {
-    if (etapeActuelle.type === 'slider') return true
-    if (etapeActuelle.type === 'ranked_chips') return (reponses.sensation || []).length >= 1
-    return !!valeurActuelle()
-  }
-
-  function avancer() {
-    const prochaine = etapeIndex + 1
-    if (prochaine >= ETAPES.length) return
-    // Si Junior, on saute l'étape niveau (index 1)
-    if (ETAPES[prochaine]?.id === 'niveau' && reponses.genre === 'Junior') {
-      setReponses(prev => ({ ...prev, niveau: 'debutant' })) // niveau par défaut pour junior
-      setEtape(prochaine + 1)
-    } else {
-      setEtape(prochaine)
-    }
-  }
-
-  async function suivant() {
-    if (etapeIndex < ETAPES.length - 1) {
-      setEtape(etapeIndex + 1)
-      return
-    }
-    await soumettre()
-  }
-
-  async function soumettre() {
-    setLoading(true)
-    setErreur('')
-    try {
-      var quiz = {
-        genre: reponses.genre,
-        niveau: reponses.niveau,
-        budget: reponses.budgetIllimite ? BUDGET_ILLIMITE : reponses.budget,
-        budgetIllimite: reponses.budgetIllimite || false,
-        sensation: reponses.sensation || [],
-      }
-      var res = await fetch('/api/score', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quiz: quiz, email: null, customerId: null }),
-      })
-      var data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Erreur serveur')
-      sessionStorage.setItem('selector_resultats', JSON.stringify(data.resultats))
-      sessionStorage.setItem('selector_quiz', JSON.stringify(quiz))
-      router.push('/resultats')
-    } catch (e) {
-      setErreur('Une erreur est survenue. Veuillez réessayer.')
-      setLoading(false)
-    }
-  }
-
-  if (loading) {
-    return (
-      <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--fond)' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div className="spinner" style={{ margin: '0 auto 20px' }} />
-          <p style={{ color: 'var(--texte-muted)', fontFamily: 'var(--font)', fontWeight: 700 }}>Ne bouge pas, ta future raquette est bientôt là ! 🎾</p>
-        </div>
-      </main>
-    )
-  }
-
+export default function AccueilPage() {
   return (
     <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--fond)' }}>
 
-      {/* MODALE D'ENTRÉE */}
-      {modaleVisible && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div style={{ background: '#fff', borderRadius: 20, padding: '32px 24px', maxWidth: 480, width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
-            <div style={{ textAlign: 'center', marginBottom: 28 }}>
-              <span style={{ fontFamily: 'var(--font)', fontSize: 22, fontWeight: 900, color: 'var(--bleu)' }}>
-                EL <span style={{ color: 'var(--jaune)' }}>SELECTOR</span>
-              </span>
-              <p style={{ fontFamily: 'var(--font)', fontSize: 16, fontWeight: 800, color: '#1A1A2E', marginTop: 16, marginBottom: 6 }}>
-                Tu as déjà une raquette de padel ?
-              </p>
-              <p style={{ fontFamily: 'var(--font)', fontSize: 13, fontWeight: 600, color: '#888' }}>
-                On t'oriente vers le bon outil
-              </p>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <button
-                onClick={() => { setModaleVisible(false) }}
-                style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', background: '#F8F9FB', border: '2px solid #E8EAF0', borderRadius: 14, cursor: 'pointer', textAlign: 'left', transition: 'border-color .15s' }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--bleu)'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = '#E8EAF0'}>
-                <span style={{ fontSize: 28 }}>🏏</span>
-                <div>
-                  <div style={{ fontFamily: 'var(--font)', fontSize: 14, fontWeight: 800, color: '#1A1A2E', marginBottom: 2 }}>Non, je cherche ma première raquette</div>
-                  <div style={{ fontFamily: 'var(--font)', fontSize: 12, fontWeight: 600, color: '#888' }}>El Selector — quiz en 4 étapes</div>
-                </div>
-              </button>
-              <button
-                onClick={() => router.push('/upgrade')}
-                style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', background: '#F0F3FF', border: '2px solid #C8D3F9', borderRadius: 14, cursor: 'pointer', textAlign: 'left', transition: 'border-color .15s' }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--bleu)'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = '#C8D3F9'}>
-                <span style={{ fontSize: 28 }}>🚀</span>
-                <div>
-                  <div style={{ fontFamily: 'var(--font)', fontSize: 14, fontWeight: 800, color: '#1A1A2E', marginBottom: 2 }}>Oui, je veux évoluer</div>
-                  <div style={{ fontFamily: 'var(--font)', fontSize: 12, fontWeight: 600, color: '#888' }}>El Evoluteur — trouve ta prochaine raquette</div>
-                </div>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* HEADER */}
       <header style={{ background: 'var(--blanc)', borderBottom: '1px solid var(--bordure)', padding: '14px 20px' }}>
-        <div style={{ maxWidth: 680, margin: '0 auto' }}>
+        <div style={{ maxWidth: 720, margin: '0 auto' }}>
           <span style={{ fontFamily: 'var(--font)', fontSize: 18, fontWeight: 900, color: 'var(--bleu)' }}>
             EL <span style={{ color: 'var(--jaune)' }}>SELECTOR</span>
           </span>
         </div>
       </header>
 
-      <div style={{ background: 'var(--blanc)', padding: '10px 20px 14px', borderBottom: '1px solid var(--bordure)' }}>
-        <div style={{ maxWidth: 680, margin: '0 auto' }}>
-          <div className="progress-bar">
-            <div className="progress-fill" style={{ width: progression + '%' }} />
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
-            <span style={{ fontSize: 12, color: 'var(--texte-muted)', fontWeight: 700 }}>{etapeIndex + 1} / {ETAPES.length}</span>
-            {etapeIndex > 0 && (
-              <button onClick={function() { setEtape(etapeIndex - 1) }}
-                style={{ fontSize: 13, color: 'var(--texte-muted)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font)', fontWeight: 700 }}>
-                ← Retour
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
+      <div className="container" style={{ maxWidth: 720, flex: 1, paddingTop: 44, paddingBottom: 40 }}>
 
-      <div className="container fade-up" style={{ flex: 1, paddingTop: 40, paddingBottom: 32 }} key={etapeIndex}>
-        <h1 style={{ fontFamily: 'var(--font)', fontSize: 'clamp(24px, 5vw, 32px)', fontWeight: 900, color: 'var(--texte)', textAlign: 'center', lineHeight: 1.2, marginBottom: etapeActuelle.sous_titre ? 8 : 32 }}>
-          {etapeActuelle.titre}
-        </h1>
-
-        {etapeActuelle.sous_titre && (
-          <p style={{ color: 'var(--texte-muted)', marginBottom: 28, fontSize: 14, textAlign: 'center', fontWeight: 600 }}>
-            {etapeActuelle.sous_titre}
+        {/* HERO */}
+        <section style={{ textAlign: 'center', marginBottom: 40 }}>
+          <span style={{
+            display: 'inline-block', fontFamily: 'var(--font)', fontSize: 13, fontWeight: 800,
+            color: 'var(--bleu)', background: 'var(--bleu-light)', padding: '6px 14px', borderRadius: 100,
+            marginBottom: 18, letterSpacing: '.01em',
+          }}>
+            🎾 Ton conseiller raquette de padel
+          </span>
+          <h1 style={{
+            fontFamily: 'var(--font)', fontSize: 'clamp(28px, 6vw, 44px)', fontWeight: 900,
+            color: 'var(--texte)', lineHeight: 1.12, margin: '0 auto 14px', maxWidth: 15 + 'ch',
+          }}>
+            Trouve ta prochaine{' '}
+            <span style={{ position: 'relative', whiteSpace: 'nowrap' }}>
+              <span style={{ position: 'absolute', left: -2, right: -2, bottom: 4, height: '0.42em', background: 'var(--jaune)', borderRadius: 4, zIndex: 0 }} aria-hidden="true" />
+              <span style={{ position: 'relative', zIndex: 1 }}>raquette&nbsp;!</span>
+            </span>
+          </h1>
+          <p style={{
+            fontFamily: 'var(--font)', fontSize: 'clamp(15px, 2.2vw, 17px)', fontWeight: 600,
+            color: 'var(--texte-muted)', maxWidth: '52ch', margin: '0 auto',
+          }}>
+            Deux chemins, un seul objectif&nbsp;: la raquette qui te correspond vraiment. Choisis ton point de départ, on s'occupe du reste.
           </p>
-        )}
+        </section>
 
-        {etapeActuelle.type === 'level_cards' && (
-          <div className="level-grid">
-            {etapeActuelle.options.map(function(opt) {
-              return (
-                <button key={opt.value}
-                  className={'level-card' + (valeurActuelle() === opt.value ? ' active' : '')}
-                  onClick={function() { selectionner(opt.value); setTimeout(avancer, 200) }}>
-                  {opt.image
-                    ? <img src={opt.image} alt={opt.label} style={{ width: 90, height: 90, objectFit: 'contain', marginBottom: 4 }} />
-                    : <div className="level-card-icon">{opt.icon}</div>}
-                  <div className="level-card-label">{opt.label}</div>
-                </button>
-              )
-            })}
-          </div>
-        )}
+        {/* DEUX ENTRÉES — dimensions et poids visuel strictement identiques */}
+        <section className="acc-grid" aria-label="Choisis ton point de départ">
 
-        {etapeActuelle.type === 'slider' && (
-          <div>
-            {reponses.budgetIllimite ? (
-              <div style={{ textAlign: 'center', marginBottom: 28 }}>
-                <span style={{ fontFamily: 'var(--font)', fontSize: 42, fontWeight: 900, color: 'var(--bleu)' }}>
-                  Budget illimité
-                </span>
-              </div>
-            ) : (
-              <div>
-                <div style={{ textAlign: 'center', marginBottom: 28 }}>
-                  <span style={{ fontFamily: 'var(--font)', fontSize: 56, fontWeight: 900, color: 'var(--bleu)' }}>
-                    {reponses.budget}€
-                  </span>
-                </div>
-                <input type="range" min={50} max={360} step={10}
-                  value={reponses.budget}
-                  onChange={function(e) { selectionner(parseInt(e.target.value)) }} />
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10 }}>
-                  <span style={{ fontSize: 12, color: 'var(--texte-muted)', fontWeight: 700 }}>50€</span>
-                  <span style={{ fontSize: 12, color: 'var(--texte-muted)', fontWeight: 700 }}>360€</span>
-                </div>
-              </div>
-            )}
-            <button
-              onClick={toggleBudgetIllimite}
-              style={{
-                display: 'block', width: '100%', marginTop: 20,
-                padding: '12px', borderRadius: 12, cursor: 'pointer',
-                fontFamily: 'var(--font)', fontSize: 14, fontWeight: 700,
-                border: reponses.budgetIllimite ? '2px solid var(--bleu)' : '2px solid var(--bordure)',
-                background: reponses.budgetIllimite ? 'var(--bleu-light)' : 'transparent',
-                color: reponses.budgetIllimite ? 'var(--bleu)' : 'var(--texte-muted)',
-                transition: 'all .15s',
-              }}>
-              {reponses.budgetIllimite ? '✓ Budget illimité activé' : 'Pas de limite de budget'}
-            </button>
-          </div>
-        )}
+          {/* Entrée 1 : El Selector */}
+          <a className="acc-card" href="/selector">
+            <span className="acc-emoji" aria-hidden="true">🏏</span>
+            <span className="acc-tag">El Selector</span>
+            <span className="acc-h2">Je pars de zéro</span>
+            <span className="acc-p">Tu cherches ta première raquette&nbsp;? On te pose 4 questions simples et on te propose les modèles faits pour toi.</span>
+            <span className="acc-meta">4 étapes • ~2 min</span>
+            <span className="acc-cta">Commencer le Selector →</span>
+          </a>
 
-        {etapeActuelle.type === 'ranked_chips' && (
-          <div>
-            {/* Grille fixe 3×2 */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 }}>
-              {etapeActuelle.options.map(function(opt) {
-                var rang = (reponses.sensation || []).indexOf(opt.value)
-                var selected = rang !== -1
-                var disabled = !selected && (reponses.sensation || []).length >= 3
-                return (
-                  <button key={opt.value} disabled={disabled}
-                    onClick={function() { toggleSensation(opt.value) }}
-                    style={{
-                      position: 'relative',
-                      padding: '14px 10px',
-                      borderRadius: 12,
-                      border: '2px solid ' + (selected ? 'var(--bleu)' : 'var(--bordure)'),
-                      background: selected ? 'var(--bleu)' : 'var(--blanc)',
-                      color: selected ? '#fff' : 'var(--texte-muted)',
-                      fontFamily: 'var(--font)', fontSize: 13, fontWeight: 700,
-                      cursor: disabled ? 'not-allowed' : 'pointer',
-                      opacity: disabled ? 0.4 : 1,
-                      textAlign: 'center',
-                      transition: 'all .15s',
-                    }}>
-                    {selected && (
-                      <span style={{
-                        position: 'absolute', top: 6, right: 6,
-                        width: 18, height: 18, borderRadius: '50%',
-                        background: 'var(--jaune)', color: '#1A1A2E',
-                        fontSize: 10, fontWeight: 900,
-                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                      }}>
-                        {rang + 1}
-                      </span>
-                    )}
-                    {opt.label}
-                  </button>
-                )
-              })}
-            </div>
+          {/* Entrée 2 : El Evoluteur */}
+          <a className="acc-card" href="/upgrade">
+            <span className="acc-emoji" aria-hidden="true">🚀</span>
+            <span className="acc-tag">El Evoluteur</span>
+            <span className="acc-h2">Je fais évoluer ma raquette</span>
+            <span className="acc-p">Tu joues déjà&nbsp;? Indique ta raquette actuelle&nbsp;: on identifie ce qui te correspond et on te propose la suite logique.</span>
+            <span className="acc-meta">À partir de ta raquette actuelle</span>
+            <span className="acc-cta">Commencer l'Evoluteur →</span>
+          </a>
 
-            {/* Récap ordre de sélection */}
-            {(reponses.sensation || []).length > 0 && (
-              <div style={{ background: 'var(--blanc)', border: '1px solid var(--bordure)', borderRadius: 12, padding: '12px 16px', marginBottom: 24 }}>
-                {(reponses.sensation || []).map(function(s, i) {
-                  var opt = etapeActuelle.options.find(function(o) { return o.value === s })
-                  return (
-                    <div key={s} style={{
-                      display: 'flex', alignItems: 'center', gap: 10,
-                      paddingBottom: i < reponses.sensation.length - 1 ? 10 : 0,
-                      marginBottom: i < reponses.sensation.length - 1 ? 10 : 0,
-                      borderBottom: i < reponses.sensation.length - 1 ? '1px solid var(--bordure)' : 'none',
-                    }}>
-                      <span style={{ fontSize: 11, color: 'var(--texte-muted)', fontWeight: 800, width: 28 }}>{RANG_LABEL[i]}</span>
-                      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--texte)', flex: 1 }}>{opt ? opt.label : s}</span>
-                      <button onClick={function() { toggleSensation(s) }}
-                        style={{ fontSize: 12, color: 'var(--texte-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-        )}
+        </section>
 
-        {erreur && (
-          <p style={{ color: '#D32F2F', fontSize: 14, marginTop: 12, textAlign: 'center', fontWeight: 700 }}>{erreur}</p>
-        )}
+        {/* PASSERELLE — on ne laisse jamais le joueur sortir de l'outil */}
+        <section className="acc-bridge" aria-label="Aide">
+          <span className="acc-bridge-emoji" aria-hidden="true">🔁</span>
+          <span className="acc-bridge-text">
+            <strong>Tu ne retrouves pas ta raquette dans l'Evoluteur&nbsp;?</strong>
+            Pas de souci&nbsp;: le Selector prend le relais et te guide pas à pas, sans quitter l'outil.
+          </span>
+          <a className="acc-bridge-link" href="/selector">Passer par le Selector →</a>
+        </section>
+
+        {/* RÉASSURANCE */}
+        <div className="acc-reassure">
+          <span>✓ 100&nbsp;% gratuit</span>
+          <span>✓ Sans inscription</span>
+          <span>✓ Conseils personnalisés</span>
+        </div>
+
       </div>
 
-      <div className="container" style={{ paddingBottom: 40 }}>
-        {(etapeActuelle.type === 'slider' || etapeActuelle.type === 'ranked_chips') && (
-          <button className="btn btn-primary" onClick={suivant} disabled={!peutContinuer()}>
-            {etapeIndex === ETAPES.length - 1 ? 'Voir mes raquettes →' : 'Continuer →'}
-          </button>
-        )}
-      </div>
+      {/* FOOTER */}
+      <footer style={{ borderTop: '1px solid var(--bordure)', padding: '22px 20px 32px', textAlign: 'center' }}>
+        <span style={{ fontFamily: 'var(--font)', fontSize: 13, fontWeight: 700, color: 'var(--texte-muted)' }}>
+          EL <span style={{ color: 'var(--jaune)' }}>SELECTOR</span> — ton conseiller raquette de padel.
+        </span>
+      </footer>
+
+      {/* Styles spécifiques à l'accueil (grille responsive + états hover) */}
+      <style>{`
+        .acc-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+          align-items: stretch;
+          margin-bottom: 24px;
+        }
+        .acc-card {
+          display: flex;
+          flex-direction: column;
+          background: var(--blanc);
+          border: 2px solid var(--bordure);
+          border-radius: var(--radius);
+          padding: 26px 22px;
+          text-decoration: none;
+          transition: border-color .15s ease, transform .15s ease, box-shadow .15s ease;
+        }
+        .acc-card:hover {
+          border-color: var(--bleu);
+          transform: translateY(-3px);
+          box-shadow: 0 14px 30px -14px rgba(43,78,229,.35);
+        }
+        .acc-card:focus-visible {
+          outline: 3px solid var(--bleu);
+          outline-offset: 3px;
+        }
+        .acc-emoji {
+          font-size: 34px;
+          width: 60px; height: 60px;
+          display: inline-flex; align-items: center; justify-content: center;
+          background: var(--bleu-light);
+          border-radius: 16px;
+          margin-bottom: 16px;
+        }
+        .acc-tag {
+          font-family: var(--font); font-size: 12px; font-weight: 800; letter-spacing: .08em;
+          text-transform: uppercase; color: var(--bleu); margin-bottom: 4px;
+        }
+        .acc-h2 {
+          font-family: var(--font); font-size: 20px; font-weight: 900; color: var(--texte);
+          line-height: 1.2; margin-bottom: 8px;
+        }
+        .acc-p {
+          font-family: var(--font); font-size: 14.5px; font-weight: 600; color: var(--texte-muted);
+          line-height: 1.55;
+        }
+        .acc-meta {
+          font-family: var(--font); font-size: 13px; font-weight: 800; color: var(--texte-muted);
+          margin-top: 14px;
+        }
+        .acc-cta {
+          margin-top: 18px;
+          display: inline-flex; align-items: center; justify-content: center;
+          background: var(--bleu); color: #fff;
+          font-family: var(--font); font-size: 15px; font-weight: 800;
+          padding: 13px 18px; border-radius: var(--radius-btn);
+          transition: background .15s ease;
+        }
+        .acc-card:hover .acc-cta { background: var(--bleu-hover); }
+
+        .acc-bridge {
+          display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+          justify-content: center; text-align: center;
+          background: var(--texte); color: #fff;
+          border-radius: var(--radius); padding: 20px 24px; margin-bottom: 22px;
+        }
+        .acc-bridge-emoji {
+          font-size: 22px; width: 42px; height: 42px; flex: none;
+          display: inline-flex; align-items: center; justify-content: center;
+          background: rgba(255,255,255,.12); border-radius: 12px;
+        }
+        .acc-bridge-text {
+          font-family: var(--font); font-size: 14px; font-weight: 600; color: #C9CCE0;
+          max-width: 46ch; line-height: 1.5;
+        }
+        .acc-bridge-text strong {
+          display: block; color: #fff; font-weight: 800; font-size: 15px; margin-bottom: 2px;
+        }
+        .acc-bridge-link {
+          font-family: var(--font); font-size: 14px; font-weight: 800; white-space: nowrap;
+          color: var(--texte); background: var(--jaune);
+          padding: 10px 16px; border-radius: var(--radius-btn); text-decoration: none;
+          transition: filter .15s ease;
+        }
+        .acc-bridge-link:hover { filter: brightness(.94); }
+
+        .acc-reassure {
+          display: flex; justify-content: center; flex-wrap: wrap; gap: 12px 26px;
+          font-family: var(--font); font-size: 13.5px; font-weight: 800; color: var(--texte-muted);
+        }
+
+        @media (max-width: 600px) {
+          .acc-grid { grid-template-columns: 1fr; }
+          .acc-bridge { flex-direction: column; }
+        }
+      `}</style>
 
     </main>
   )
