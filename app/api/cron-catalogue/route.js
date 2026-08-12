@@ -6,12 +6,21 @@ async function ecrireGitHub(owner, repo, token, path, data) {
   const contenu = JSON.stringify(data, null, 2)
   const contenuBase64 = Buffer.from(contenu).toString('base64')
   const urlFichier = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`
+  const headers = {
+    'Authorization': `Bearer ${token}`,
+    'Accept': 'application/vnd.github+json',
+    'Content-Type': 'application/json',
+  }
 
-  const resFichier = await fetch(urlFichier, {
-    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' }
-  })
+  // Toujours récupérer le SHA actuel juste avant d'écrire
   let sha = null
-  if (resFichier.ok) { const d = await resFichier.json(); sha = d.sha }
+  try {
+    const resFichier = await fetch(urlFichier, { headers })
+    if (resFichier.ok) {
+      const d = await resFichier.json()
+      sha = d.sha
+    }
+  } catch(e) {}
 
   const body = {
     message: `chore: mise à jour ${path} ${new Date().toISOString().split('T')[0]}`,
@@ -21,13 +30,27 @@ async function ecrireGitHub(owner, repo, token, path, data) {
 
   const res = await fetch(urlFichier, {
     method: 'PUT',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Accept': 'application/vnd.github+json',
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify(body),
   })
+
+  // En cas de conflit 409, réessayer en récupérant le SHA frais
+  if (res.status === 409) {
+    const resFrais = await fetch(urlFichier, { headers })
+    if (resFrais.ok) {
+      const d = await resFrais.json()
+      const bodyRetry = { ...body, sha: d.sha }
+      const resRetry = await fetch(urlFichier, {
+        method: 'PUT', headers,
+        body: JSON.stringify(bodyRetry),
+      })
+      if (!resRetry.ok) {
+        const err = await resRetry.text()
+        throw new Error(`GitHub error ${path}: ${resRetry.status} — ${err}`)
+      }
+      return
+    }
+  }
 
   if (!res.ok) {
     const err = await res.text()
