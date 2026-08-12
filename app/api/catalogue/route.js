@@ -1,22 +1,30 @@
-import { getRaquettes } from '../../../lib/shopify'
+import { getRaquettesAvecArchives } from '../../../lib/shopify'
+
+export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
-    const raquettes = await getRaquettes()
+    // Catalogue complet incluant les raquettes archivées
+    // Utilisé pour l'autocomplete de l'Evolutor
+    const raquettes = await getRaquettesAvecArchives()
+
     const catalogue = raquettes.map(r => ({
       id: r.id,
       title: r.title,
       handle: r.handle,
       image: r.image,
       price: r.price,
+      compareAtPrice: r.compareAtPrice,
       genre: r.genre,
+      poids: r.poids,
       schema: r.schema,
+      stock: r.stock,
+      precommande: r.precommande,
     }))
-    return Response.json({ raquettes: catalogue }, {
-      headers: { 'Cache-Control': 's-maxage=300, stale-while-revalidate=600' }
-    })
+
+    return Response.json({ raquettes: catalogue })
   } catch (err) {
     console.error('Catalogue API error:', err)
-    return Response.json({ error: 'Erreur serveur' }, { status: 500 })
+    return Response.json({ error: err.message }, { status: 500 })
   }
 }
