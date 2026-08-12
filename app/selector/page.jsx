@@ -216,10 +216,25 @@ export default function QuizPage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
             <span style={{ fontSize: 12, color: 'var(--texte-muted)', fontWeight: 700 }}>{etapeIndex + 1} / {ETAPES.length}</span>
             {etapeIndex > 0 && (
-              <button onClick={function() { setEtape(etapeIndex - 1) }}
-                style={{ fontSize: 13, color: 'var(--texte-muted)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font)', fontWeight: 700 }}>
-                ← Retour
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <button
+                  onClick={function() {
+                    try {
+                      sessionStorage.removeItem('selector_quiz')
+                      sessionStorage.removeItem('selector_etape')
+                      sessionStorage.removeItem('selector_resultats')
+                    } catch (e) {}
+                    setReponses({ budget: 150, sensation: [], budgetIllimite: false })
+                    setEtape(0)
+                  }}
+                  style={{ fontSize: 13, color: 'var(--bleu)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font)', fontWeight: 800 }}>
+                  ↻ Recommencer
+                </button>
+                <button onClick={function() { setEtape(etapeIndex - 1) }}
+                  style={{ fontSize: 13, color: 'var(--texte-muted)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font)', fontWeight: 700 }}>
+                  ← Retour
+                </button>
+              </div>
             )}
           </div>
         </div>
