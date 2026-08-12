@@ -132,15 +132,6 @@ export default function QuizPage() {
     })
   }
 
-  function toggleBudgetIllimite() {
-    setReponses(function(prev) {
-      return Object.assign({}, prev, {
-        budgetIllimite: !prev.budgetIllimite,
-        budget: !prev.budgetIllimite ? BUDGET_ILLIMITE : 150,
-      })
-    })
-  }
-
   function valeurActuelle() { return reponses[etapeActuelle.id] }
 
   function peutContinuer() {
@@ -327,45 +318,42 @@ export default function QuizPage() {
           )
         })()}
 
-        {etapeActuelle.type === 'slider' && (
+        {etapeActuelle.type === 'slider' && (() => {
+          var budgetAffiche = reponses.budget >= BUDGET_ILLIMITE ? 500 : reponses.budget
+          return (
           <div>
-            {reponses.budgetIllimite ? (
-              <div style={{ textAlign: 'center', marginBottom: 28 }}>
-                <span style={{ fontFamily: 'var(--font)', fontSize: 42, fontWeight: 900, color: 'var(--bleu)' }}>
-                  Budget illimité
-                </span>
-              </div>
-            ) : (
-              <div>
-                <div style={{ textAlign: 'center', marginBottom: 28 }}>
-                  <span style={{ fontFamily: 'var(--font)', fontSize: 56, fontWeight: 900, color: 'var(--bleu)' }}>
-                    {reponses.budget}€
-                  </span>
-                </div>
-                <input type="range" min={50} max={360} step={10}
-                  value={reponses.budget}
-                  onChange={function(e) { selectionner(parseInt(e.target.value)) }} />
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10 }}>
-                  <span style={{ fontSize: 12, color: 'var(--texte-muted)', fontWeight: 700 }}>50€</span>
-                  <span style={{ fontSize: 12, color: 'var(--texte-muted)', fontWeight: 700 }}>360€</span>
-                </div>
-              </div>
-            )}
+            <div style={{ textAlign: 'center', marginBottom: 28 }}>
+              <span style={{ fontFamily: 'var(--font)', fontSize: 56, fontWeight: 900, color: 'var(--bleu)' }}>
+                {budgetAffiche}€
+              </span>
+            </div>
+            <input type="range" min={0} max={500} step={10}
+              value={budgetAffiche}
+              onChange={function(e) {
+                var v = parseInt(e.target.value, 10)
+                setReponses(function(prev) { return Object.assign({}, prev, { budget: v, budgetIllimite: false }) })
+              }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10 }}>
+              <span style={{ fontSize: 12, color: 'var(--texte-muted)', fontWeight: 700 }}>0€</span>
+              <span style={{ fontSize: 12, color: 'var(--texte-muted)', fontWeight: 700 }}>500€</span>
+            </div>
             <button
-              onClick={toggleBudgetIllimite}
+              onClick={function() {
+                setReponses(function(prev) { return Object.assign({}, prev, { budgetIllimite: true, budget: BUDGET_ILLIMITE }) })
+                if (etapeIndex < ETAPES.length - 1) setEtape(etapeIndex + 1)
+              }}
               style={{
                 display: 'block', width: '100%', marginTop: 20,
                 padding: '12px', borderRadius: 12, cursor: 'pointer',
                 fontFamily: 'var(--font)', fontSize: 14, fontWeight: 700,
-                border: reponses.budgetIllimite ? '2px solid var(--bleu)' : '2px solid var(--bordure)',
-                background: reponses.budgetIllimite ? 'var(--bleu-light)' : 'transparent',
-                color: reponses.budgetIllimite ? 'var(--bleu)' : 'var(--texte-muted)',
+                border: '2px solid var(--bordure)', background: 'transparent', color: 'var(--texte-muted)',
                 transition: 'all .15s',
               }}>
-              {reponses.budgetIllimite ? '✓ Budget illimité activé' : 'Pas de limite de budget'}
+              Pas de limite de budget →
             </button>
           </div>
-        )}
+          )
+        })()}
 
         {etapeActuelle.type === 'ranked_chips' && (
           <div>
