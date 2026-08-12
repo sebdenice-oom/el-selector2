@@ -256,41 +256,50 @@ function SlidersIntegres({ cibles, ciblesInitiales, raquetteActuelle, onChangeCi
     <div style={{ background: '#fff', border: '1.5px solid #E8EAF0', borderRadius: 14, padding: '14px 16px', marginBottom: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
         <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 13, fontWeight: 900, color: '#1A1A2E' }}>
-          🎚️ Ajuster mes critères
+          Ajuster mes critères
         </span>
         <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 11, fontWeight: 600, color: loading ? '#F6BC3E' : '#1D9E75' }}>
           {loading ? '⏳ Calcul...' : '✓ À jour'}
         </span>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px 20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
         {DIMS.map(d => {
           const valeurActuelle = raquetteActuelle?.schema?.[d] ?? 50
           const valeurCible    = cibles[d] ?? valeurActuelle
           const delta          = valeurCible - valeurActuelle
+          const monte          = delta > 0
+          const descend        = delta < 0
+          const borderColor    = monte ? '#2B4EE5' : descend ? '#D85A30' : '#D0D5E8'
+          const bgCenter       = monte ? '#EEF2FF' : descend ? '#FEF0EB' : '#F8F9FB'
+          const valColor       = monte ? '#2B4EE5' : descend ? '#D85A30' : '#1A1A2E'
+          const btnColor       = descend ? '#D85A30' : '#2B4EE5'
+          const btnHover       = descend ? '#b84a24' : '#1e3ec4'
+
+          function handleClick(direction) {
+            const nouvelle = Math.max(0, Math.min(100, valeurCible + direction * 5))
+            onChangeCible(d, nouvelle)
+          }
+
           return (
-            <div key={d}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 12, fontWeight: 800, color: '#1A1A2E' }}>{DIM_ICONS[d]} {d}</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                  {delta !== 0 && (
-                    <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 10, fontWeight: 800, color: delta > 0 ? '#3B6D11' : '#993C1D', background: delta > 0 ? '#EAF3DE' : '#FAECE7', padding: '1px 6px', borderRadius: 100 }}>
-                      {delta > 0 ? '+' : ''}{delta}
-                    </span>
-                  )}
-                  <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 14, fontWeight: 900, color: COULEUR_PROP }}>{valeurCible}</span>
-                </div>
+            <div key={d} style={{ display: 'flex', alignItems: 'center', border: `2px solid ${borderColor}`, borderRadius: 10, overflow: 'hidden' }}>
+              <button
+                onClick={() => handleClick(-1)}
+                style={{ width: 38, height: 48, border: 'none', background: btnColor, color: '#fff', fontSize: 22, fontWeight: 300, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                onMouseEnter={e => e.currentTarget.style.background = btnHover}
+                onMouseLeave={e => e.currentTarget.style.background = btnColor}>
+                −
+              </button>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '4px 2px', background: bgCenter, gap: 2 }}>
+                <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 12, fontWeight: 800, color: '#1A1A2E', textAlign: 'center', whiteSpace: 'nowrap' }}>{DIM_ICONS[d]} {d}</span>
+                <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 18, fontWeight: 900, color: valColor }}>{valeurCible}</span>
               </div>
-              <div style={{ position: 'relative' }}>
-                <input type="range" min={0} max={100} step={1} value={valeurCible}
-                  onChange={e => onChangeCible(d, parseInt(e.target.value))}
-                  style={{ width: '100%' }} />
-                <div style={{ position: 'absolute', left: `calc(${valeurActuelle}% - ${(valeurActuelle / 100) * 22 - 11}px)`, top: 0, bottom: 0, width: 2, background: '#C8D3F9', borderRadius: 1, pointerEvents: 'none', transform: 'translateX(-50%)' }} />
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 1 }}>
-                <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 9, color: '#ccc' }}>0</span>
-                <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 9, color: '#aaa' }}>Actuel : {valeurActuelle}</span>
-                <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 9, color: '#ccc' }}>100</span>
-              </div>
+              <button
+                onClick={() => handleClick(1)}
+                style={{ width: 38, height: 48, border: 'none', background: btnColor, color: '#fff', fontSize: 22, fontWeight: 300, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                onMouseEnter={e => e.currentTarget.style.background = btnHover}
+                onMouseLeave={e => e.currentTarget.style.background = btnColor}>
+                +
+              </button>
             </div>
           )
         })}
