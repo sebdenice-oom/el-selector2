@@ -54,7 +54,7 @@ export async function POST(request) {
       scoreFinal: r.scoreFinal,
       scoreTech: Math.round(r.scoreTech),
       compareAtPrice: r.compareAtPrice || null,
-      isJoffrey: r.isJoffrey || false,
+      isEPS: r.isEPS || false,
       variantId: r.variantId || null,
     }))
 
