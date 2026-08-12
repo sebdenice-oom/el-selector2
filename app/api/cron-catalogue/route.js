@@ -4,12 +4,6 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(request) {
   try {
-    // Vérification du secret cron
-    const authHeader = request.headers.get('authorization')
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-      return Response.json({ error: 'Non autorisé' }, { status: 401 })
-    }
-
     // 1. Récupérer le catalogue depuis Shopify
     console.log('Début récupération catalogue Shopify...')
     const raquettes = await getRaquettesFromShopify()
