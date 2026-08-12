@@ -18,13 +18,14 @@ const ETAPES = [
   },
   {
     id: 'niveau',
-    titre: 'Quel est ton niveau de jeu ?',
-    type: 'level_cards',
+    titre: 'Quel est ton niveau ?',
+    sous_titre: "Sois honnête : c'est le critère qui pèse le plus sur la reco.",
+    type: 'gauge',
     options: [
-      { value: 'debutant',      label: 'Débutant',      icon: '🎾' },
-      { value: 'intermediaire', label: 'Intermédiaire', icon: '🏆' },
-      { value: 'avance',        label: 'Avancé',        icon: '⚡' },
-      { value: 'competition',   label: 'Compétition',   icon: '🥇' },
+      { value: 'debutant',      label: 'Débutant',      def: 'tu débutes ou tu joues de temps en temps ; tu cherches surtout du confort et de la tolérance.' },
+      { value: 'intermediaire', label: 'Intermédiaire', def: 'tu joues régulièrement, tu maîtrises la sortie de vitre et tu commences à smasher.' },
+      { value: 'avance',        label: 'Confirmé',      def: 'tu joues souvent, tu places tes coups et tu cherches plus de puissance et de contrôle.' },
+      { value: 'competition',   label: 'Expert',        def: 'tu joues en compétition ou à haut niveau ; tu veux une raquette exigeante et performante.' },
     ],
   },
   {
@@ -107,6 +108,15 @@ export default function QuizPage() {
   const etapeActuelle = ETAPES[etapeIndex]
   const progression = (etapeIndex / ETAPES.length) * 100
 
+  // Jauge : sélectionne un palier par défaut (Intermédiaire) à l'entrée de l'étape
+  useEffect(function() {
+    if (etapeActuelle.type === 'gauge' && !reponses[etapeActuelle.id]) {
+      var parDefaut = etapeActuelle.options[1] || etapeActuelle.options[0]
+      if (parDefaut) setReponses(function(prev) { return Object.assign({}, prev, { [etapeActuelle.id]: parDefaut.value }) })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [etapeActuelle.id])
+
   function selectionner(valeur) {
     setReponses(function(prev) { return Object.assign({}, prev, { [etapeActuelle.id]: valeur }) })
   }
@@ -135,6 +145,7 @@ export default function QuizPage() {
 
   function peutContinuer() {
     if (etapeActuelle.type === 'slider') return true
+    if (etapeActuelle.type === 'gauge') return !!valeurActuelle()
     if (etapeActuelle.type === 'ranked_chips') return (reponses.sensation || []).length >= 1
     return !!valeurActuelle()
   }
@@ -287,6 +298,35 @@ export default function QuizPage() {
           </div>
         )}
 
+        {etapeActuelle.type === 'gauge' && (function() {
+          var opts = etapeActuelle.options
+          var idx = opts.findIndex(function(o) { return o.value === valeurActuelle() })
+          if (idx < 0) idx = 1
+          var courant = opts[idx] || opts[0]
+          var pct = opts.length > 1 ? (idx / (opts.length - 1)) * 100 : 0
+          return (
+            <div className="gauge-box">
+              <div className="gauge-label">Niveau de jeu</div>
+              <input type="range" className="gauge-range" min={0} max={opts.length - 1} step={1}
+                value={idx}
+                onChange={function(e) { selectionner(opts[parseInt(e.target.value, 10)].value) }}
+                style={{ background: 'linear-gradient(to right, var(--bleu) 0%, var(--bleu) ' + pct + '%, var(--bordure) ' + pct + '%, var(--bordure) 100%)' }} />
+              <div className="gauge-ticks">
+                {opts.map(function(o, i) {
+                  return (
+                    <button key={o.value} type="button"
+                      className={'gauge-tick' + (i === idx ? ' active' : '')}
+                      onClick={function() { selectionner(o.value) }}>
+                      {o.label}
+                    </button>
+                  )
+                })}
+              </div>
+              <p className="gauge-def"><strong>{courant.label}</strong> — {courant.def}</p>
+            </div>
+          )
+        })()}
+
         {etapeActuelle.type === 'slider' && (
           <div>
             {reponses.budgetIllimite ? (
@@ -398,7 +438,7 @@ export default function QuizPage() {
       </div>
 
       <div className="container" style={{ paddingBottom: 40 }}>
-        {(etapeActuelle.type === 'slider' || etapeActuelle.type === 'ranked_chips') && (
+        {(etapeActuelle.type === 'slider' || etapeActuelle.type === 'ranked_chips' || etapeActuelle.type === 'gauge') && (
           <button className="btn btn-primary" onClick={suivant} disabled={!peutContinuer()}>
             {etapeIndex === ETAPES.length - 1 ? 'Voir mes raquettes →' : 'Continuer →'}
           </button>

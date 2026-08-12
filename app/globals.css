@@ -90,6 +90,37 @@ body {
 .genre-card.active .genre-illus { background: #E3E9FF; }
 .genre-card-label { font-size: 15px; font-weight: 800; color: var(--texte); text-align: center; }
 
+/* ===== Écran 02 — Niveau : jauge continue ===== */
+.gauge-box {
+  background: var(--blanc);
+  border: 1px solid var(--bordure);
+  border-radius: var(--radius);
+  padding: 22px 22px 20px;
+  max-width: 520px;
+  margin: 0 auto 8px;
+}
+.gauge-label {
+  font-family: var(--font);
+  font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--texte-muted); margin-bottom: 16px;
+}
+.gauge-range { width: 100%; margin: 2px 0 4px; }
+.gauge-ticks { display: flex; justify-content: space-between; gap: 6px; margin-top: 10px; }
+.gauge-tick {
+  background: none; border: none; padding: 0; cursor: pointer;
+  font-family: var(--font); font-size: 12.5px; font-weight: 700; color: var(--texte-muted);
+  transition: color .15s ease; flex: 1; text-align: center;
+}
+.gauge-tick:first-child { text-align: left; }
+.gauge-tick:last-child { text-align: right; }
+.gauge-tick:hover { color: var(--bleu); }
+.gauge-tick.active { color: var(--bleu); font-weight: 800; }
+.gauge-def {
+  font-family: var(--font); font-size: 14px; font-weight: 600; color: var(--texte);
+  line-height: 1.5; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--bordure);
+}
+.gauge-def strong { font-weight: 800; color: var(--bleu); }
+
 .level-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
 .level-card {
   background: var(--blanc); border: 2px solid var(--bordure); border-radius: var(--radius);
