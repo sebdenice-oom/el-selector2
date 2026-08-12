@@ -435,13 +435,13 @@ export default function QuizPage() {
         {erreur && (
           <p style={{ color: '#D32F2F', fontSize: 14, marginTop: 12, textAlign: 'center', fontWeight: 700 }}>{erreur}</p>
         )}
-      </div>
 
-      <div className="container" style={{ paddingBottom: 40 }}>
         {(etapeActuelle.type === 'slider' || etapeActuelle.type === 'ranked_chips' || etapeActuelle.type === 'gauge') && (
-          <button className="btn btn-primary" onClick={suivant} disabled={!peutContinuer()}>
-            {etapeIndex === ETAPES.length - 1 ? 'Voir mes raquettes →' : 'Continuer →'}
-          </button>
+          <div style={{ maxWidth: 520, margin: '28px auto 0' }}>
+            <button className="btn btn-primary" onClick={suivant} disabled={!peutContinuer()}>
+              {etapeIndex === ETAPES.length - 1 ? 'Voir mes raquettes →' : 'Continuer →'}
+            </button>
+          </div>
         )}
       </div>
 
