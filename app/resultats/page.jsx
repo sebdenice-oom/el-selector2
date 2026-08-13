@@ -5,6 +5,10 @@ import { useRouter } from 'next/navigation'
 const STORE_URL = 'https://esprit-padel-shop.myshopify.com'
 
 async function ajouterAuPanier(variantId, handle) {
+  // On ouvre l'onglet TOUT DE SUITE (dans le geste de clic) pour éviter le blocage popup,
+  // puis on le redirige vers l'URL panier une fois connue. L'outil reste ouvert derrière.
+  const win = window.open('', '_blank')
+  const aller = (url) => { if (win) win.location.href = url; else window.open(url, '_blank', 'noopener,noreferrer') }
   try {
     const res = await fetch('/api/cart', {
       method: 'POST',
@@ -12,12 +16,9 @@ async function ajouterAuPanier(variantId, handle) {
       body: JSON.stringify({ variantId, handle }),
     })
     const data = await res.json()
-    if (data.url) window.location.href = data.url
-    else window.location.href = `${STORE_URL}/cart`
+    aller(data.url || `${STORE_URL}/cart`)
   } catch(e) {
-    window.location.href = handle
-      ? `${STORE_URL}/products/${handle}`
-      : `${STORE_URL}/cart`
+    aller(handle ? `${STORE_URL}/products/${handle}` : `${STORE_URL}/cart`)
   }
 }
 
@@ -182,6 +183,16 @@ function RaquetteCard({ raquette, rank, onVoirProfil, isEPS = false }) {
               : <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 10, fontWeight: 700, background: '#F0FAF4', color: '#1D9E75', padding: '2px 8px', borderRadius: 6 }}>✓ Stock</span>}
             <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 10, fontWeight: 700, color: '#aaa', marginLeft: 'auto' }}>Voir la fiche →</span>
           </div>
+          {raquette.explication && (
+            <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {(raquette.explication.plus || []).map((t, i) => (
+                <span key={i} style={{ fontFamily: 'Nunito, sans-serif', fontSize: 11.5, fontWeight: 700, color: '#1D9E75' }}>+ {t}</span>
+              ))}
+              {raquette.explication.moins && (
+                <span style={{ fontFamily: 'Nunito, sans-serif', fontSize: 11.5, fontWeight: 700, color: '#B0870A' }}>– {raquette.explication.moins}</span>
+              )}
+            </div>
+          )}
         </div>
       </a>
       <div style={{ borderTop: '0.5px solid #EEF0F6', display: 'flex' }}>

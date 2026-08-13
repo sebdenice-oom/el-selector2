@@ -57,6 +57,7 @@ export async function POST(request) {
       schema: r.schema,
       scoreFinal: r.scoreFinal,
       scoreTech: Math.round(r.scoreTech),
+      explication: r.explication || null,
       compareAtPrice: r.compareAtPrice || null,
       isEPS: r.isEPS || false,
       variantId: r.variantId || null,
